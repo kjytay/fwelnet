@@ -1,0 +1,166 @@
+---
+title: "Introduction to Feature-Weighted Elastic Net (fwelnet)"
+author: "Kenneth Tay"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{fwelnet}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Introduction
+
+`fwelnet` is a package that fits the __*feature-weighted elastic net (fwelnet)*__, a variant of the elastic net which has feature-specific penalties. These penalties are based on additional information that the user has on the features. `fwelnet` works with continuous and binary responses.
+
+We introduce some notation that we will use throughout this vignette. Let there be $n$ observations, each with feature vector $x_i \in \mathbb{R}^p$ and response $y_i$. Let $\mathbf{X} \in \mathbb{R}^{n \times p}$ denote the overall feature matrix, and let $y \in \mathbb{R}^n$ denote the vector of responses. Let $X_j \in \mathbb{R}^n$ denote the $j$th column of $\mathbf{X}$.
+
+Assume that we also have some information on the features themselves. We organize these "features of features" into an auxiliary matrix $\mathbf{Z} \in \mathbb{p \times K}$, where $p$ is the number of features and $K$ is the number of sources of feature information. Each column of $\mathbf{Z}$ represents the values for each feature information source, while each row of $\mathbf{Z}$, denoted $\mathbf{z}_j^T$ for the $j$th row, represents the values that a particular feature takes on for the $K$ different sources.
+
+Select hyperparameters $\alpha \in [0, 1]$ and $\lambda$ values $\lambda_1 > \dots > \lambda_m$. Here is a brief sketch of the fwelnet model-fitting algorithm:
+
+1. For $i = 1, \dots, m$, initialize $\beta^{(0)}(\lambda_i)$ at the elastic net solution for the corresponding $\lambda_i$. Set $\theta^{(0)} = \mathbf{0}$.
+
+2. For $k = 0, 1, \dots$ until convergence:
+
+    (a) Set $\Delta \theta$ to be the component-wise mean/median of the gradient of the fwelnet objective function over $\lambda_1, \dots, \lambda_m$.
+  
+    (b) Set $\theta^{(k+1)} = \theta^{(k)} - \eta \Delta \theta$, where $\eta$ is the step size computed via backtracking line search to ensure that the mean/median of the fwelnet objective function is decreasing.
+    
+    (c) For $i = 1, \dots, m$, set $\beta^{(k+1)}(\lambda_i)$ to be elastic net solution for $\lambda_i$ where the penalty factor for feature $j$ is $\left(\sum_{\ell = 1}^p \exp (\mathbf{z}_\ell^T \theta) \right) / (p \exp (\mathbf{z}_j^T \theta))$.
+
+For a new observation $\begin{pmatrix} x_1' & \dots & x_p'\end{pmatrix}$, the fwelnet prediction at $\lambda_i$ would be $\hat{\beta}_0(\lambda_i) + \sum_{j=1}^p x_j' \hat{\beta}_j (\lambda_i)$. For more details, see our paper on arXiv (to come soon).
+
+The `fwelnet()` function fits this model and returns an object with class "fwelnet". The `fwelnet` package includes methods for prediction for "fwelnet" objects, as well as a function which performs $k$-fold cross-validation for `fwelnet()`.
+
+## Installation
+
+The `fwelnet` package can be installed from Github. Type the following command in R console:
+```{r eval=FALSE}
+devtools::install_github("kjytay/fwelnet")
+```
+
+## The `fwelnet()` function
+
+The purpose of this section is to give users an overview of the `fwelnet()` function, which is the heart of this package. First, we load the `fwelnet` package:
+```{r}
+library(fwelnet)
+```
+
+Let's generate some data. In this example, we assume that we have 40 features, and that these features come in 4 groups of 10. The response is a linear combination of the features from the first 2 groups with additive Gaussian noise.
+```{r}
+set.seed(1)
+n <- 100
+p <- 40
+groups <- list(1:10, 11:20, 21:30, 31:40)  # which features belong to which group
+x <- matrix(rnorm(n * p), nrow = n, ncol = p)
+beta <- matrix(rep(1:0, each = 20), ncol = 1)
+y <- x %*% beta + rnorm(n)
+```
+
+In order to fit a fwelnet model, we have to define a feature information matrix. In our example, we have $\mathbf{Z} \in \mathbb{R}^{40 \times 4}$, with $z_{jk} = 1\{ \text{feature } j \text{ belongs to group } k \}$.
+```{r}
+# generate Z matrix
+z <- matrix(0, nrow = p, ncol = length(groups))
+for (i in 1:length(groups)) {
+    z[groups[[i]], i] <- 1
+}
+```
+
+Once `z` is specified, we can fit the fwelnet model with `fwelnet()`. This returns an object of class "fwelnet".
+```{r}
+fit <- fwelnet(x, y, z)
+```
+
+To print model-fitting information to the console while the function is running, pass `verbose = TRUE`:
+```{r}
+fit <- fwelnet(x, y, z, verbose = TRUE)
+```
+
+### Looking into the "fwelnet" object
+
+Predictions for the fwelnet model can be obtained using the generic `predict` method. Predictions are returned for the `lambda` values in the "fwelnet" object. For example, the code below returns predictions for the first 5 observations in the training set for the 20th `lambda` value:
+```{r}
+predict(fit, x[1:5, ])[, 20]
+```
+
+By default, the `coef` method returns the intercept and coefficients for the model for the whole `lambda` path as a sparse matrix. The code below returns the coefficients (with intercept) for the 20th `lambda` value:
+```{r}
+as.numeric(coef(fit)[, 20])
+```
+
+The "fwelnet" object contains other key-value pairs that might be of interest. If the name of our object is `fit`, `fit$lambda` contains the values in the `lambda` path at which the fwelnet model is computed. `fit$nzero` tells us the number of non-zero coefficients at each `lambda` value. While not used in prediction, `fit$theta` gives us an indication of the relative importance of each source of feature information (see paper for details).
+
+### `fwelnet()` function options
+
+`fwelnet()` shares a number of function options which are common with other functions for regularized models like `glmnet::glmnet()` (`lambda`, `family`, `alpha`, `standardize`, `thresh`). `fwelnet()` has some unique function options which we describe here:
+
+- `max_iter`: In theory, fwelnet alternates between minimizing `theta` and `beta` until convergence. In practice, we limit the number of iterations by `max_iter`. The default value is `max_iter = 1`; in practice we recommend trying out 1, 2 and 5 iterations. (Note that less than `max_iter` iterations may occur if convergence happens before that.)
+
+- `ave_mode` and `thresh_mode`: These relate to how the average is taken across multiple `lambda` values. `ave_mode` controls whether we take the component-wise mean or median in determining the descent direction for `theta` (Step 2(a) above), while `thresh_mode` controls whether we look at the mean or median of the objective function when determining convergence (Step 2(b) above). In our simulations we find that these options do not change the final result much.
+
+- `t` and `a`: These parameters relate to the backtracking line search in the update for `theta`. `t` is the initial step size (default 1) while `a` is the factor by which the step size is decreased in each backtracking iteration (default 0.5).
+
+## Cross-validation (CV)
+
+We can perform $k$-fold cross-validation (CV) for fwelnet with `cv.fwelnet()`. It does 10-fold cross-validation by default:
+```{r}
+set.seed(10)
+cvfit <- cv.fwelnet(x, y, z)
+```
+
+We can change the number of CV folds using the `nfolds` option:
+```{r}
+cvfit <- cv.fwelnet(x, y, z, nfolds = 5)
+```
+
+If we want to specify which observation belongs to which fold, we can do that by specifying the `foldid` option, which is a vector of length $n$, with the $i$th element being the fold number for observation $i$.
+```{r}
+set.seed(3)
+foldid <- sample(rep(seq(10), length = n))
+cvfit <- cv.fwelnet(x, y, z, foldid = foldid)
+```
+
+A `cv.fwelnet()` call returns a `cv.fwelnet` object. We can plot this object to get the CV curve with error bars (one standard error in each direction). The left vertical dotted line represents `lambda.min`, the `lambda` value which attains minimum CV error, while the right vertical dotted line represents `lambda.1se`, the largest `lambda` value with CV error within one standard error of the minimum CV error.
+```{r fig.width=5, fig.height=4}
+plot(cvfit)
+```
+
+The numbers at the top represent the number of features that are included in the model (i.e. the number of $j$ such that $\hat{\beta}_j$ is non-zero).
+
+The two special `lambda` values can be extracted directly from the `cv.fwelnet` object as well:
+```{r}
+cvfit$lambda.min
+cvfit$lambda.1se
+```
+
+Predictions can be made from  the fitted `cv.fwelnet` object. By default, predictions are given for `lambda` being equal to `lambda.1se`. To get predictions are `lambda.min`, set `s = "lambda.min"`.
+```{r}
+predict(cvfit, x[1:5, ])   # s = lambda.1se
+predict(cvfit, x[1:5, ], s = "lambda.min")
+```
+
+## `fwelnet` for binary data
+
+Fwelnet models can be fit for binary data as well. In this case, a logistic model is assumed. Pass `family = "binomial"` to `fwelnet()` to fit a logistic model.
+```{r}
+bin_y <- ifelse(y > 0, 1, 0)
+binfit <- fwelnet(x, bin_y, z, family = "binomial")
+```
+
+When fitting a binomial model, note that the default return value for the `predict` method is the linear predictor $x^T \hat{\beta}$. To obtain fitted probabilities, pass `type = "response"`:
+```{r}
+# linear predictor
+predict(binfit, x[1:5, ])[, 20]
+
+# fitted probabilities
+predict(binfit, x[1:5, ], type = "response")[, 20]
+```
+
