@@ -6,9 +6,10 @@ Feature-Weighted Elastic Net (fwelnet)
 (fwelnet)***, a variant of the elastic net which has feature-specific
 penalties. These penalties are based on additional information that the
 user has on the features. `fwelnet` works with continuous and binary
-responses. For details, please see the preprint (to come soon). For a
-short tutorial on how to use the package, please see the vignette in the
-`vignettes/` folder.
+responses. For details, please see the
+[preprint](https://arxiv.org/abs/2006.01395). For a short tutorial on
+how to use the package, please see the vignette in the `vignettes/`
+folder.
 
 An example
 ----------

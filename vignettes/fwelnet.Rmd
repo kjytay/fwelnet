@@ -36,7 +36,7 @@ Select hyperparameters $\alpha \in [0, 1]$ and $\lambda$ values $\lambda_1 > \do
     
     (c) For $i = 1, \dots, m$, set $\beta^{(k+1)}(\lambda_i)$ to be elastic net solution for $\lambda_i$ where the penalty factor for feature $j$ is $\left(\sum_{\ell = 1}^p \exp (\mathbf{z}_\ell^T \theta) \right) / (p \exp (\mathbf{z}_j^T \theta))$.
 
-For a new observation $\begin{pmatrix} x_1' & \dots & x_p'\end{pmatrix}$, the fwelnet prediction at $\lambda_i$ would be $\hat{\beta}_0(\lambda_i) + \sum_{j=1}^p x_j' \hat{\beta}_j (\lambda_i)$. For more details, see our paper on arXiv (to come soon).
+For a new observation $\begin{pmatrix} x_1' & \dots & x_p'\end{pmatrix}$, the fwelnet prediction at $\lambda_i$ would be $\hat{\beta}_0(\lambda_i) + \sum_{j=1}^p x_j' \hat{\beta}_j (\lambda_i)$. For more details, see our [preprint](https://arxiv.org/abs/2006.01395).
 
 The `fwelnet()` function fits this model and returns an object with class "fwelnet". The `fwelnet` package includes methods for prediction for "fwelnet" objects, as well as a function which performs $k$-fold cross-validation for `fwelnet()`.
 

@@ -6,6 +6,8 @@ Author: Kenneth Tay, Robert Tibshirani
 Maintainer: Kenneth Tay <kjytay@stanford.edu>
 Description: A method for fitting the entire regularization path of the 
     feature-weighted elastic net (fwelnet) for linear and logistic regression.
+    See Tay, J. K., Aghaeepour, N., Hastie, T., and Tibshirani, R., (2020) 
+    <arXiv:2006.01395> for details.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
