@@ -96,7 +96,7 @@ n <- 100; p <- 20
 x <- matrix(rnorm(n * p), n, p)
 beta <- matrix(c(rep(2, 5), rep(0, 15)), ncol = 1)
 y <- x \%*\% beta + rnorm(n)
-z <- cbind(1, abs(beta) + rnorm(p))
+z <- abs(beta) + rnorm(p)
 
 fwelnet(x, y, z)
 fwelnet(x, y, z, ave_mode = 2)
