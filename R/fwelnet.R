@@ -22,7 +22,7 @@
 #' between 0 and 1 (inclusive). Default value is 1.
 #' @param standardize If \code{TRUE}, the columns of the input matrix are
 #' standardized before the algorithm is run. Default is \code{TRUE}.
-#' @param max_iter The number of iterations for the optimization. Default is 1.
+#' @param max_iter The number of iterations for the optimization. Default is 20.
 #' @param ave_mode If equal to 1 (default), the gradient descent direction for
 #' \code{theta} is the mean gradient across the lambda values. If equal to 2,
 #' it is the component-wise median gradient across the lambda values.
@@ -35,7 +35,7 @@
 #' @param a The factor by which step size is decreased in \code{theta}
 #' backtracking line search (default value is 0.5).
 #' @param thresh If the mean/median objective function does not decrease by at
-#' least this factor, we terminate the optimization early. Default is 1e-4.
+#' least this factor, we terminate the optimization early. Default is 1e-3.
 #' @param verbose If \code{TRUE}, prints information to console as model is
 #' being fit. Default is \code{FALSE}.
 #'
@@ -67,8 +67,8 @@
 #' @importFrom stats median sd
 #' @export
 fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial"),
-                    alpha = 1, standardize = TRUE, max_iter = 1, ave_mode = 1,
-                    thresh_mode = 1, t = 1, a = 0.5, thresh = 1e-4,
+                    alpha = 1, standardize = TRUE, max_iter = 20, ave_mode = 1,
+                    thresh_mode = 1, t = 1, a = 0.5, thresh = 1e-3,
                     verbose = FALSE) {
     this.call <- match.call()
 

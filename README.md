@@ -1,6 +1,6 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-Feature-Weighted Elastic Net (fwelnet)
-======================================
+
+# Feature-Weighted Elastic Net (fwelnet)
 
 `fwelnet` is a package that fits the ***feature-weighted elastic net
 (fwelnet)***, a variant of the elastic net which has feature-specific
@@ -11,8 +11,7 @@ responses. For details, please see the
 how to use the package, please see the vignette in the `vignettes/`
 folder.
 
-An example
-----------
+## An example
 
 Here is a simple example to illustrate how to use this package. First,
 let’s generate some data. In this example, we assume that we have 40
@@ -57,14 +56,14 @@ the whole `lambda` path.
 ``` r
 # predictions for first 5 observations at 20th lambda value
 predict(fit, x[1:5, ])[, 20]
-#  [1]  1.0342118  5.9991002 -1.8476885 -1.1713328 -0.5891373
+#  [1]  1.2359876  6.3969524 -1.9602492 -1.1781763 -0.5872078
 
 # coefficients at the 20th lambda value (including intercept)
 as.numeric(coef(fit)[, 20])
-#   [1] -0.1724001  0.5835508  0.4862924  0.4525343  0.7083713  0.9203059
-#   [7]  0.6250100  0.7257856  1.1662045  0.9173184  0.6505217  0.6570609
-#  [13]  0.6398280  0.9016092  0.6402918  0.7126133  0.8255739  1.2130462
-#  [19]  0.4603750  1.0811643  0.6380584  0.0000000  0.0000000  0.0000000
+#   [1] -0.1440444  0.6481368  0.5835123  0.5545719  0.7626670  0.9323669
+#   [7]  0.7142652  0.7729034  1.1863878  0.9510465  0.7041017  0.7242916
+#  [13]  0.7258272  0.9641891  0.7273089  0.7733351  0.8912650  1.2407252
+#  [19]  0.5566069  1.1192067  0.7399865  0.0000000  0.0000000  0.0000000
 #  [25]  0.0000000  0.0000000  0.0000000  0.0000000  0.0000000  0.0000000
 #  [31]  0.0000000  0.0000000  0.0000000  0.0000000  0.0000000  0.0000000
 #  [37]  0.0000000  0.0000000  0.0000000  0.0000000  0.0000000

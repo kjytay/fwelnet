@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 
 We introduce some notation that we will use throughout this vignette. Let there be $n$ observations, each with feature vector $x_i \in \mathbb{R}^p$ and response $y_i$. Let $\mathbf{X} \in \mathbb{R}^{n \times p}$ denote the overall feature matrix, and let $y \in \mathbb{R}^n$ denote the vector of responses. Let $X_j \in \mathbb{R}^n$ denote the $j$th column of $\mathbf{X}$.
 
-Assume that we also have some information on the features themselves. We organize these "features of features" into an auxiliary matrix $\mathbf{Z} \in \mathbb{p \times K}$, where $p$ is the number of features and $K$ is the number of sources of feature information. Each column of $\mathbf{Z}$ represents the values for each feature information source, while each row of $\mathbf{Z}$, denoted $\mathbf{z}_j^T$ for the $j$th row, represents the values that a particular feature takes on for the $K$ different sources.
+Assume that we also have some information on the features themselves. We organize these "features of features" into an auxiliary matrix $\mathbf{Z} \in p \times K$, where $p$ is the number of features and $K$ is the number of sources of feature information. Each column of $\mathbf{Z}$ represents the values for each feature information source, while each row of $\mathbf{Z}$, denoted $\mathbf{z}_j^T$ for the $j$th row, represents the values that a particular feature takes on for the $K$ different sources.
 
 Select hyperparameters $\alpha \in [0, 1]$ and $\lambda$ values $\lambda_1 > \dots > \lambda_m$. Here is a brief sketch of the fwelnet model-fitting algorithm:
 
@@ -102,9 +102,9 @@ The "fwelnet" object contains other key-value pairs that might be of interest. I
 
 `fwelnet()` shares a number of function options which are common with other functions for regularized models like `glmnet::glmnet()` (`lambda`, `family`, `alpha`, `standardize`, `thresh`). `fwelnet()` has some unique function options which we describe here:
 
-- `max_iter`: In theory, fwelnet alternates between minimizing `theta` and `beta` until convergence. In practice, we limit the number of iterations by `max_iter`. The default value is `max_iter = 1`; in practice we recommend trying out 1, 2 and 5 iterations. (Note that less than `max_iter` iterations may occur if convergence happens before that.)
+- `max_iter` and `thresh`: Fwelnet alternates between minimizing `theta` and `beta` until convergence. The algorithm terminates when either (i) the objective function value doesn't decrease by a multiplicative factor of more than `thresh` (default `thresh = 1e-3`), or (ii) `max_iter` iterations are performed (default `max_iter = 20`).
 
-- `ave_mode` and `thresh_mode`: These relate to how the average is taken across multiple `lambda` values. `ave_mode` controls whether we take the component-wise mean or median in determining the descent direction for `theta` (Step 2(a) above), while `thresh_mode` controls whether we look at the mean or median of the objective function when determining convergence (Step 2(b) above). In our simulations we find that these options do not change the final result much.
+- `ave_mode` and `thresh_mode`: These relate to how the average is taken across multiple `lambda` values. `ave_mode` controls whether we take the component-wise mean or median in determining the descent direction for `theta` (Step 2(a) above), while `thresh_mode` controls whether we look at the mean or median of the objective function when determining convergence (Step 2(b) above). In our simulations we find that these options do not change the final result much, so we recommend using the defaults.
 
 - `t` and `a`: These parameters relate to the backtracking line search in the update for `theta`. `t` is the initial step size (default 1) while `a` is the factor by which the step size is decreased in each backtracking iteration (default 0.5).
 
