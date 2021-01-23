@@ -139,7 +139,7 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial"),
     prev_iter_m_obj_value <- get_ave_obj(obj_store[1, ])
     if (verbose) cat(paste(ave_fn_name,
         "objective function value of elastic net solution:",
-        format(round(prev_iter_m_obj_value, 3), nsmall = 3)),
+        round(prev_iter_m_obj_value, 5)),
         fill = TRUE)
     while (iter < max_iter) {
         iter <- iter + 1
@@ -176,7 +176,7 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial"),
         }
         if (verbose) cat(paste(ave_fn_name,
             "objective function value after theta minimization:",
-            format(round(new_m_obj_value, 3), nsmall = 3)),
+            round(new_m_obj_value, 5)),
             fill = TRUE)
 
         # OPTIMIZATION FOR BETA: ONE GLMNET STEP
@@ -193,7 +193,7 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial"),
         obj_store[iter + 1, ] <- new_obj_value
         if (verbose) cat(paste(ave_fn_name,
             "objective function value after beta minimization:",
-            format(round(new_m_obj_value, 3), nsmall = 3)),
+            round(new_m_obj_value, 5)),
             fill = TRUE)
 
         # if mean/median obj function value not decreased enough, terminate early
