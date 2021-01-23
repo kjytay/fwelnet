@@ -13,6 +13,7 @@ fwelnet(
   alpha = 1,
   standardize = TRUE,
   max_iter = 20,
+  init_mode = c("enet", "zero", "random"),
   ave_mode = 1,
   thresh_mode = 1,
   t = 1,
@@ -44,6 +45,10 @@ between 0 and 1 (inclusive). Default value is 1.}
 standardized before the algorithm is run. Default is \code{TRUE}.}
 
 \item{max_iter}{The number of iterations for the optimization. Default is 20.}
+
+\item{init_mode}{If "enet" (default), beta is initialized to the elastic
+net solution. If "zero", beta is initialized to 0. If "random", beta is
+initialized to random N(0, 1) values.}
 
 \item{ave_mode}{If equal to 1 (default), the gradient descent direction for
 \code{theta} is the mean gradient across the lambda values. If equal to 2,

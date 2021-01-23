@@ -23,6 +23,9 @@
 #' @param standardize If \code{TRUE}, the columns of the input matrix are
 #' standardized before the algorithm is run. Default is \code{TRUE}.
 #' @param max_iter The number of iterations for the optimization. Default is 20.
+#' @param init_mode If "enet" (default), beta is initialized to the elastic
+#' net solution. If "zero", beta is initialized to 0. If "random", beta is
+#' initialized to random N(0, 1) values.
 #' @param ave_mode If equal to 1 (default), the gradient descent direction for
 #' \code{theta} is the mean gradient across the lambda values. If equal to 2,
 #' it is the component-wise median gradient across the lambda values.
@@ -67,7 +70,8 @@
 #' @importFrom stats median sd
 #' @export
 fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial"),
-                    alpha = 1, standardize = TRUE, max_iter = 20, ave_mode = 1,
+                    alpha = 1, standardize = TRUE, max_iter = 20,
+                    init_mode = c("enet", "zero", "random"), ave_mode = 1,
                     thresh_mode = 1, t = 1, a = 0.5, thresh = 1e-3,
                     verbose = FALSE) {
     this.call <- match.call()
@@ -82,6 +86,7 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial"),
     if (family == "binomial" && any(!(unique(y) %in% c(0, 1)))) {
         stop("If family is binomial, y can only contain 0s and 1s")
     }
+    init_mode <- match.arg(init_mode)
 
     # center y and columns of x
     mx <- colMeans(x)
@@ -113,9 +118,18 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial"),
     get_ave_obj <- ifelse(thresh_mode == 1, mean, median)
     ave_fn_name <- ifelse(thresh_mode == 1, "Mean", "Median")
 
-    # initialize beta, a0 at elastic net solution, theta at 0
-    beta <- matrix(glmfit$beta, nrow = p)
-    a0 <- glmfit$a0
+    # initialize beta, a0, theta at 0
+    if (init_mode == "enet") {
+        beta <- matrix(glmfit$beta, nrow = p)
+        a0 <- glmfit$a0
+    } else if (init_mode == "zero") {
+        beta <- matrix(0, nrow = p, ncol = length(lambda))
+        a0 <- rep(0, length(lambda))
+    } else {
+        beta <- matrix(rnorm(p * length(lambda)), nrow = p)
+        a0 <- rnorm(length(lambda))
+    }
+
     theta <- matrix(0, nrow = K, ncol = 1)
     iter <- 0    # no. of beta/theta minimizations
 
