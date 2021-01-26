@@ -67,7 +67,8 @@
 #' fwelnet(x, y, z, ave_mode = 2)
 #' fwelnet(x, y, z, ave_mode = 2, thresh_mode = 2)
 #'
-#' @importFrom stats median sd
+#' @importFrom glmnet glmnet
+#' @importFrom stats median sd rnorm
 #' @export
 fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial"),
                     alpha = 1, standardize = TRUE, max_iter = 20,
@@ -106,11 +107,11 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial"),
     # fit elastic net; if lambda sequence not provided, use the glmnet default
     # come up with lambda values: use the lambda sequence from glmnet
     if (is.null(lambda)) {
-        glmfit <- glmnet::glmnet(x, y, alpha = alpha, family = family,
-                                 standardize = FALSE)
+        glmfit <- glmnet(x, y, alpha = alpha, family = family,
+                         standardize = FALSE)
         lambda <- glmfit$lambda
     } else {
-        glmfit <- glmnet::glmnet(x, y, alpha = alpha, family = family,
+        glmfit <- glmnet(x, y, alpha = alpha, family = family,
                                  standardize = FALSE, lambda = lambda)
     }
 
@@ -181,9 +182,9 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial"),
 
         # OPTIMIZATION FOR BETA: ONE GLMNET STEP
         pen.weights = mean(exp(z %*% theta)) * exp(- z %*% theta)
-        fit <- glmnet::glmnet(x, y, family = family, standardize = FALSE,
-                              alpha = alpha, lambda = lambda * mean(pen.weights),
-                              penalty.factor = pen.weights)
+        fit <- glmnet(x, y, family = family, standardize = FALSE,
+                      alpha = alpha, lambda = lambda * mean(pen.weights),
+                      penalty.factor = pen.weights)
         beta <- matrix(fit$beta, nrow = p)
         a0 <- fit$a0
 
