@@ -66,6 +66,7 @@ penalty_fn <- function(z, beta, theta, lambda, alpha = 1) {
 nll_fn <- function(x, y, beta, a0, family = "gaussian") {
     y <- drop(y)
     pred <- scale(x %*% beta, center = -a0, scale = FALSE)
+    # FIXME: Add family = "cox" case
     if (family == "gaussian") {
         nll <- colMeans((y - pred)^2) / 2
     } else if (family == "binomial") {

@@ -66,7 +66,7 @@
 #'
 #' @importFrom stats median sd
 #' @export
-fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial"),
+fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "cox"),
                     alpha = 1, standardize = TRUE, max_iter = 1, ave_mode = 1,
                     thresh_mode = 1, t = 1, a = 0.5, thresh = 1e-4,
                     verbose = FALSE) {
@@ -77,7 +77,10 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial"),
     }
 
     n <- nrow(x); p <- ncol(x); K <- ncol(z)
-    y <- as.vector(y)
+    if (!inherits(y, "Surv")) {
+      # Need to pass survival outcome via Surv or as matrix, this breaks it
+      y <- as.vector(y)
+    }
     family <- match.arg(family)
     if (family == "binomial" && any(!(unique(y) %in% c(0, 1)))) {
         stop("If family is binomial, y can only contain 0s and 1s")
@@ -110,7 +113,13 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial"),
     }
 
     # function for averaging objective
-    get_ave_obj <- ifelse(thresh_mode == 1, mean, median)
+    # get_ave_obj <- ifelse(thresh_mode == 1, mean, median)
+    # ifelse throws an error in interactive testing otherwise
+    get_ave_obj <- switch(thresh_mode,
+        `1` = mean,
+        `2` = median
+    )
+
     ave_fn_name <- ifelse(thresh_mode == 1, "Mean", "Median")
 
     # initialize beta, a0 at elastic net solution, theta at 0
@@ -121,6 +130,9 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial"),
 
     # store obj values across iterations (including original elastic net soln)
     obj_store <- matrix(NA, nrow = max_iter + 1, ncol = length(lambda))
+    # FIXME: Objective function needs cox adaptation, see helper.R
+    # 1) a0 is NULL in family = "cox" case
+    # 2) objective_fn internally doesn't know how to Cox yet
     obj_store[1, ] <- objective_fn(x, y, z, beta, a0, theta, lambda, alpha, family)
     prev_iter_m_obj_value <- get_ave_obj(obj_store[1, ])
     if (verbose) cat(paste(ave_fn_name,
