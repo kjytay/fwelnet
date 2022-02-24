@@ -131,7 +131,7 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
     # store obj values across iterations (including original elastic net soln)
     obj_store <- matrix(NA, nrow = max_iter + 1, ncol = length(lambda))
     # FIXME:
-    # 1) a0 is NULL in family = "cox" case
+    # 1) a0 is NULL in family = "cox" case, bc no b_0(?)
     # 2) objective_fn shoddily cox'd, w/o a0 though
     # browser()
     obj_store[1, ] <- objective_fn(x, y, z, beta, a0, theta, lambda, alpha, family)

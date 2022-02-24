@@ -8,7 +8,7 @@
 #' be made.
 #' @param type Type of prediction required. Type "link" (default) gives the
 #' linear predictors. Type "response" gives the linear predictor for "gaussian"
-#' family and fitted probabilities for "binomial" family.
+#' and "cox" family and fitted probabilities for "binomial" family.
 #' @param ... Potentially other arguments to be passed to and from methods;
 #' currently not in use.
 #'
@@ -38,7 +38,13 @@
 predict.fwelnet <- function(object, xnew, type = c("link", "response"),
                             ...) {
     type <- match.arg(type)
-    out <- t(object$a0 + t(xnew %*% object$beta))
+
+    if (length(object$a0) == 0) {
+        # a0 is numeric(0) or NULL for family = "cox"
+        out <- t(xnew %*% object$beta)
+    } else {
+        out <- t(object$a0 + t(xnew %*% object$beta))
+    }
 
     if (type == "response" && object$family == "binomial") {
         out <- 1 / (1 + exp(-out))
