@@ -130,9 +130,10 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
 
     # store obj values across iterations (including original elastic net soln)
     obj_store <- matrix(NA, nrow = max_iter + 1, ncol = length(lambda))
-    # FIXME: Objective function needs cox adaptation, see helper.R
+    # FIXME:
     # 1) a0 is NULL in family = "cox" case
-    # 2) objective_fn internally doesn't know how to Cox yet
+    # 2) objective_fn shoddily cox'd, w/o a0 though
+    # browser()
     obj_store[1, ] <- objective_fn(x, y, z, beta, a0, theta, lambda, alpha, family)
     prev_iter_m_obj_value <- get_ave_obj(obj_store[1, ])
     if (verbose) cat(paste(ave_fn_name,

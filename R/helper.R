@@ -60,11 +60,33 @@ penalty_fn <- function(z, beta, theta, lambda, alpha = 1) {
         colSums((alpha * abs(beta) + (1 - alpha) * beta^2 / 2 ) / exp_term)
 }
 
+#' Cox NLL shortcut
+#'
+#' Get pred/nll from survival::coxph(), 0 iterations, coefs stay the same.
+#' Vectorized over nlam cols in beta
+#' @param x n x p matrix
+#' @param y Vector of length n
+#' @param beta p x nlam matrix
+nll_cox <- function(x, y, beta) {
+    vapply(seq_len(ncol(beta)), function(i) {
+        # nll = -loglik
+        -1 * survival::coxph(y ~ x, init = beta[, i], iter.max = 0)$loglik[[2]]
+    }, FUN.VALUE = numeric(1))
+}
+
 # NLL function
 # beta: p x nlam matrix
 # a0: vector of length nlam
 nll_fn <- function(x, y, beta, a0, family = "gaussian") {
     y <- drop(y)
+
+    # For cox, we don't hav a0 from glmnet (why?)
+    # Early return nll to avoid error in scale()
+    if (family == "cox") {
+        nll <- nll_cox(x, y, beta)
+        return(nll)
+    }
+
     pred <- scale(x %*% beta, center = -a0, scale = FALSE)
     # FIXME: Add family = "cox" case
     if (family == "gaussian") {
@@ -74,6 +96,8 @@ nll_fn <- function(x, y, beta, a0, family = "gaussian") {
     } else {
         stop("Invalid value for family option")
     }
+
+    nll
 }
 
 # objective function
