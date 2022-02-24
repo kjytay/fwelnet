@@ -39,7 +39,7 @@ predict.fwelnet <- function(object, xnew, type = c("link", "response"),
                             ...) {
     type <- match.arg(type)
 
-    if (length(object$a0) == 0) {
+    if (object$family == "cox") {
         # a0 is numeric(0) or NULL for family = "cox"
         out <- t(xnew %*% object$beta)
     } else {

@@ -208,7 +208,8 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
     }
 
     # rescale intercept & beta values (beta will only change when standardize = TRUE)
-    a0 <- a0 - colSums(beta * mx / sx)
+    # is NULL for "cox" anyway
+    if(!is.null(a0)) a0 <- a0 - colSums(beta * mx / sx)
     if (family == "gaussian") a0 <- a0 + y_mean
     beta <- beta / sx
 
