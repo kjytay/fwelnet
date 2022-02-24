@@ -9,7 +9,7 @@ fwelnet(
   y,
   z,
   lambda = NULL,
-  family = c("gaussian", "binomial"),
+  family = c("gaussian", "binomial", "cox"),
   alpha = 1,
   standardize = TRUE,
   max_iter = 1,

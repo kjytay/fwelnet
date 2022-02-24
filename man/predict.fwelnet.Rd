@@ -14,7 +14,7 @@ be made.}
 
 \item{type}{Type of prediction required. Type "link" (default) gives the
 linear predictors. Type "response" gives the linear predictor for "gaussian"
-family and fitted probabilities for "binomial" family.}
+and "cox" family and fitted probabilities for "binomial" family.}
 
 \item{...}{Potentially other arguments to be passed to and from methods;
 currently not in use.}
