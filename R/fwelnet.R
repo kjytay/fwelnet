@@ -76,6 +76,15 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
         stop("alpha must be between 0 and 1 (inclusive)")
     }
 
+    # Allow data.frame/categorical input for survival without intercept
+    if (is.data.frame(x)) {
+      if (inherits(y, "Surv")) {
+        x <- model.matrix(~ . -1, x)
+      } else {
+        x <- model.matrix(~ ., x)
+      }
+    }
+
     n <- nrow(x); p <- ncol(x); K <- ncol(z)
     if (!inherits(y, "Surv")) {
       # Need to pass survival outcome via Surv or as matrix, this breaks it
@@ -200,7 +209,7 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
             prev_iter_m_obj_value < thresh) {
             obj_store <- obj_store[1:(iter + 1), ]
             if (verbose) cat(paste(ave_fn_name,
-                "objective function value not decreased enough, stopping early"))
+                "objective function value not decreased enough, stopping early\n"))
             break
         } else {
             prev_iter_m_obj_value <- new_m_obj_value

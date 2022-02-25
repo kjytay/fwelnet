@@ -80,7 +80,7 @@ nll_cox <- function(x, y, beta) {
 nll_fn <- function(x, y, beta, a0, family = "gaussian") {
     y <- drop(y)
 
-    # For cox, we don't hav a0 from glmnet (why?)
+    # For cox, we don't have a0 from glmnet
     # Early return nll to avoid error in scale()
     if (family == "cox") {
         nll <- nll_cox(x, y, beta)
@@ -88,7 +88,6 @@ nll_fn <- function(x, y, beta, a0, family = "gaussian") {
     }
 
     pred <- scale(x %*% beta, center = -a0, scale = FALSE)
-    # FIXME: Add family = "cox" case
     if (family == "gaussian") {
         nll <- colMeans((y - pred)^2) / 2
     } else if (family == "binomial") {

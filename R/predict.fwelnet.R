@@ -39,6 +39,16 @@ predict.fwelnet <- function(object, xnew, type = c("link", "response"),
                             ...) {
     type <- match.arg(type)
 
+    # Allow data.frame/categorical input
+    # Allow data.frame/categorical input for survival without intercept
+    if (is.data.frame(xnew)) {
+      if (inherits(y, "Surv")) {
+        x <- model.matrix(~ . -1, xnew)
+      } else {
+        x <- model.matrix(~ ., xnew)
+      }
+    }
+
     if (object$family == "cox") {
         # a0 is numeric(0) or NULL for family = "cox"
         out <- t(xnew %*% object$beta)
