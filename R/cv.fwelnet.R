@@ -24,7 +24,7 @@
 #' logistic regression only, and gives misclassification error. type.measure="auc"
 #' is for two-class logistic regression only, and gives area under the ROC curve.
 #' type.measure="mse" or type.measure="mae" (mean absolute error) can be used by
-#' all models.
+#' all models. For "cox", the negative log-likelihood is used.
 #' @param nfolds Number of folds for CV (default is 10). Although \code{nfolds}
 #' can be as large as the sample size (leave-one-out CV), it is not recommended
 #' for large datasets. Smallest value allowable is \code{nfolds = 3}.
@@ -78,18 +78,30 @@
 #'
 #' @importFrom stats predict
 #' @export
-cv.fwelnet <- function(x, y, z, family = c("gaussian", "binomial"), lambda = NULL,
-                       type.measure = c("mse", "deviance", "class", "auc", "mae"),
+cv.fwelnet <- function(x, y, z, family = c("gaussian", "binomial", "cox"), lambda = NULL,
+                       type.measure = c("mse", "deviance", "class", "auc", "mae", "nll"),
                        nfolds = 10, foldid = NULL, keep = FALSE, verbose = FALSE,
                        ...) {
     this.call <- match.call()
+
     n <- nrow(x); p <- ncol(x); K <- ncol(z)
-    y <- as.vector(y)
     family <- match.arg(family)
+    if (family != "cox") {
+      # Previous default behavior unsuitable for y if Surv() object
+      y <- as.vector(y)
+    }
 
     # get type.measure
     if (missing(type.measure)) {
-        type.measure <- ifelse(family == "gaussian", "mse", "deviance")
+      # Previous behaviour
+      # type.measure <- ifelse(family == "gaussian", "mse", "deviance")
+
+      # Setting cox -> nll, and deviance for binomial as previous default
+        type.measure <- switch (family,
+          "gaussian" = "mse",
+          "binomial" = "deviance",
+          "cox" = "nll"
+        )
     } else {
         type.measure <- match.arg(type.measure)
     }
@@ -123,14 +135,26 @@ cv.fwelnet <- function(x, y, z, family = c("gaussian", "binomial"), lambda = NUL
         yy <- y[!oo]
         fits[[ii]] <- fwelnet(xc, yy, z, lambda = fit0$lambda, family = family,
                                verbose = verbose, ...)
+        if (family == "cox") {
+          # If cox, add nll here? needs access to x, y from fold
+          # Easier to access here than later where cvstuff is calculated
+          # for other families
+          fits[[ii]]$nll <- nll_cox(xc, yy, fits[[ii]]$beta)
+          # Get number of events in fold, if yy is Surv() obj. second column
+          # is status with 1 == event
+          fits[[ii]]$n_events <- sum(yy[, "status"])
+        }
     }
 
     # get predictions
-    predmat <- matrix(NA, n, length(fit0$lambda))
-    for (ii in 1:nfolds) {
+    # step currently not necessary for cox
+    if (family != "cox") {
+      predmat <- matrix(NA, n, length(fit0$lambda))
+      for (ii in 1:nfolds) {
         oo <- foldid == ii
         out <- predict(fits[[ii]], x[oo, , drop = F])
         predmat[oo, 1:ncol(out)] <- out
+      }
     }
 
     # compute CV stuff (machinery borrowed from glmnet)
@@ -139,12 +163,56 @@ cv.fwelnet <- function(x, y, z, family = c("gaussian", "binomial"), lambda = NUL
         cvstuff <- cv.elnet(predmat, y, type.measure, weights, foldid, grouped)
         name <- ifelse(type.measure == "mae", "Mean Absolute Error",
                        "Mean-Squared Error")
-    } else {   # family == "binomial"
+    } else if (family == "binomial") {
         cvstuff <- cv.lognet(predmat, y, type.measure, weights, foldid, grouped)
         name <- switch(type.measure,
                        deviance = "Binomial Deviance",
                        class = "Misclassification Error",
                        auc = "AUC")
+    } else if (family == "cox") {
+      # nll calc done above during fit step so access x, y in folds
+      # or better to use glmnet::coxnet::deviance probably
+      # nll per fold is fine for now we can be fancy bois later
+      cvstuff <- list(
+        # usually N x nlam matrix, but we only have nfold x nlam, so yeah.
+        # This is not a nice way to do it but it works, I guess
+        cvraw = t(vapply(fits, function(x) x$nll, FUN.VALUE = double(length(fit0$lambda)))),
+        weights = weights, # See above
+        # Number of events in fold maybe rather than raw N?
+        N = vapply(fits, function(x) x$n_events, FUN.VALUE = double(1)),
+        type.measure = type.measure,
+        grouped = TRUE # for compatibility? see above
+      )
+      name <- "Partial Likelihood"
+    }
+
+    # Hacky special handling for the somewhat incomplete cox case
+    # FIXME: All of this should just use glmnet machinery but time is finite
+    if (family == "cox") {
+      # Get index of lambda with lowest nll per fold
+      best_lambdas_i <- apply(cvstuff$cvraw, 1, which.min)
+      # In case of multiple lambdas, pick the one which "won" most often
+      best_lambda_i <- best_lambdas_i[[which.max(table(best_lambdas_i))]]
+      lambda.min <- fit0$lambda[best_lambda_i]
+
+      out <- list(
+        glmfit=fit0,
+        lambda=fit0$lambda,
+        nzero=fit0$nzero,
+        # fit.preval=predmat.preval,
+        cvm=cvstuff$cvraw,
+        # cvsd=cvsd,
+        # cvlo=cvlo,
+        # cvup=cvup,
+        lambda.min=lambda.min,
+        # lambda.1se=lambda.1se,
+        # foldid=foldid_copy,
+        name=name,
+        call = this.call
+      )
+      class(out) <- "cv.fwelnet"
+
+      return(out)
     }
 
     cvout <- cvstats(cvstuff, foldid, nfolds, lambda, nz, cvstuff$grouped)

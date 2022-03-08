@@ -8,9 +8,9 @@ cv.fwelnet(
   x,
   y,
   z,
-  family = c("gaussian", "binomial"),
+  family = c("gaussian", "binomial", "cox"),
   lambda = NULL,
-  type.measure = c("mse", "deviance", "class", "auc", "mae"),
+  type.measure = c("mse", "deviance", "class", "auc", "mae", "nll"),
   nfolds = 10,
   foldid = NULL,
   keep = FALSE,
@@ -39,7 +39,7 @@ and deviance for logistic regression. type.measure="class" applies to binomial
 logistic regression only, and gives misclassification error. type.measure="auc"
 is for two-class logistic regression only, and gives area under the ROC curve.
 type.measure="mse" or type.measure="mae" (mean absolute error) can be used by
-all models.}
+all models. For "cox", the negative log-likelihood is used.}
 
 \item{nfolds}{Number of folds for CV (default is 10). Although \code{nfolds}
 can be as large as the sample size (leave-one-out CV), it is not recommended

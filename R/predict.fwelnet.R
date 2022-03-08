@@ -6,9 +6,10 @@
 #' @param object Fitted "\code{fwelnet}" object.
 #' @param xnew Matrix of new values for \code{x} at which predictions are to
 #' be made.
-#' @param type Type of prediction required. Type "link" (default) gives the
-#' linear predictors. Type "response" gives the linear predictor for "gaussian"
-#' and "cox" family and fitted probabilities for "binomial" family.
+#' @param type Type of prediction required. Type `"link"` (default) gives the
+#' linear predictors. Type `"response"` gives the linear predictor for "gaussian"
+#' and fitted probabilities for "binomial" family.
+#' `"coefficients"` will return the beta vector or matrix.
 #' @param ... Potentially other arguments to be passed to and from methods;
 #' currently not in use.
 #'
@@ -35,11 +36,10 @@
 #' predict(fit, xnew = x[1:5, ], type = "response")
 #'
 #' @export
-predict.fwelnet <- function(object, xnew, type = c("link", "response"),
+predict.fwelnet <- function(object, xnew, type = c("link", "response", "coefficients"),
                             ...) {
     type <- match.arg(type)
 
-    # Allow data.frame/categorical input
     # Allow data.frame/categorical input for survival without intercept
     if (is.data.frame(xnew)) {
       if (object$family == "cox") {
@@ -47,6 +47,12 @@ predict.fwelnet <- function(object, xnew, type = c("link", "response"),
       } else {
         xnew <- model.matrix(~ ., xnew)
       }
+    }
+
+    # Coefs only as glmnet does, no lambda interpolation for now
+    if (type == "coefficients") {
+      out <- object$beta
+      return(out)
     }
 
     if (object$family == "cox") {

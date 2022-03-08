@@ -141,8 +141,8 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
     obj_store <- matrix(NA, nrow = max_iter + 1, ncol = length(lambda))
     # FIXME:
     # 1) a0 is NULL in family = "cox" case, bc no b_0(?)
-    # 2) objective_fn shoddily cox'd, w/o a0 though
-    # browser()
+    # 2) objective_fn shoddily cox'd
+
     obj_store[1, ] <- objective_fn(x, y, z, beta, a0, theta, lambda, alpha, family)
     prev_iter_m_obj_value <- get_ave_obj(obj_store[1, ])
     if (verbose) cat(paste(ave_fn_name,
