@@ -135,25 +135,25 @@ cv.fwelnet <- function(x, y, z, family = c("gaussian", "binomial", "cox"), lambd
         yy <- y[!oo]
         fits[[ii]] <- fwelnet(xc, yy, z, lambda = fit0$lambda, family = family,
                                verbose = verbose, ...)
-        if (family == "cox") {
-          # If cox, add nll here? needs access to x, y from fold
-          # Easier to access here than later where cvstuff is calculated
-          # for other families
-          fits[[ii]]$nll <- nll_cox(xc, yy, fits[[ii]]$beta)
-          # Get number of events in fold, if yy is Surv() obj. second column
-          # is status with 1 == event
-          fits[[ii]]$n_events <- sum(yy[, "status"])
-        }
     }
 
     # get predictions
-    # step currently not necessary for cox
-    if (family != "cox") {
-      predmat <- matrix(NA, n, length(fit0$lambda))
-      for (ii in 1:nfolds) {
-        oo <- foldid == ii
+    predmat <- matrix(NA, n, length(fit0$lambda))
+    for (ii in 1:nfolds) {
+      oo <- foldid == ii
+
+      if (family != "cox") {
         out <- predict(fits[[ii]], x[oo, , drop = F])
         predmat[oo, 1:ncol(out)] <- out
+      }
+
+      if (family == "cox") {
+        # If cox, add nll here?
+        # fit on test data
+        fits[[ii]]$nll <- nll_cox(x[oo, , drop = F], y[oo, , drop = F], fits[[ii]]$beta)
+        # Get number of events in fold, if yy is Surv() obj. second column
+        # is status with 1 == event
+        # fits[[ii]]$n_events <- sum(y[oo, "status", drop = F])
       }
     }
 
@@ -171,15 +171,15 @@ cv.fwelnet <- function(x, y, z, family = c("gaussian", "binomial", "cox"), lambd
                        auc = "AUC")
     } else if (family == "cox") {
       # nll calc done above during fit step so access x, y in folds
-      # or better to use glmnet::coxnet::deviance probably
-      # nll per fold is fine for now we can be fancy bois later
+      # or better to use glmnet::coxnet.deviance probably
+      # nll per fold is fine for now unless it isn't?
       cvstuff <- list(
         # usually N x nlam matrix, but we only have nfold x nlam, so yeah.
         # This is not a nice way to do it but it works, I guess
         cvraw = t(vapply(fits, function(x) x$nll, FUN.VALUE = double(length(fit0$lambda)))),
         weights = weights, # See above
         # Number of events in fold maybe rather than raw N?
-        N = vapply(fits, function(x) x$n_events, FUN.VALUE = double(1)),
+        # N = vapply(fits, function(x) x$n_events, FUN.VALUE = double(1)),
         type.measure = type.measure,
         grouped = TRUE # for compatibility? see above
       )
@@ -188,11 +188,12 @@ cv.fwelnet <- function(x, y, z, family = c("gaussian", "binomial", "cox"), lambd
 
     # Hacky special handling for the somewhat incomplete cox case
     # FIXME: All of this should just use glmnet machinery but time is finite
+    # browser()
     if (family == "cox") {
-      # Get index of lambda with lowest nll per fold
-      best_lambdas_i <- apply(cvstuff$cvraw, 1, which.min)
-      # In case of multiple lambdas, pick the one which "won" most often
-      best_lambda_i <- best_lambdas_i[[which.max(table(best_lambdas_i))]]
+      # average nll per lambda across folds (rows = folds, cols = lambdas)
+      mean_nll_per_lambda <- apply(cvstuff$cvraw, 2, mean)
+      # index of lambda with smallest nll
+      best_lambda_i <- which.min(mean_nll_per_lambda)
       lambda.min <- fit0$lambda[best_lambda_i]
 
       out <- list(
