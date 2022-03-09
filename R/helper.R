@@ -77,21 +77,21 @@ nll_cox <- function(x, y, beta) {
 # NLL function
 # beta: p x nlam matrix
 # a0: vector of length nlam
+#' @importFrom glmnet coxnet.deviance
 nll_fn <- function(x, y, beta, a0, family = "gaussian") {
     y <- drop(y)
 
-    # For cox, we don't have a0 from glmnet
-    # Early return nll to avoid error in scale()
-    if (family == "cox") {
-        nll <- nll_cox(x, y, beta)
-        return(nll)
-    }
-
-    pred <- scale(x %*% beta, center = -a0, scale = FALSE)
+    # move prediction step into other families as not required for cox
+    # and the assumption of a0 existing is wrong for cox
     if (family == "gaussian") {
+        pred <- scale(x %*% beta, center = -a0, scale = FALSE)
         nll <- colMeans((y - pred)^2) / 2
     } else if (family == "binomial") {
+        pred <- scale(x %*% beta, center = -a0, scale = FALSE)
         nll <- colMeans(y * log(1 + exp(-pred)) + (1 - y) * log(1 + exp(pred)))
+    } else if (family == "cox") {
+        # get deviance as nll proxy, variable name is misleading
+        nll <- glmnet::coxnet.deviance(y = y, x = x, beta = beta)
     } else {
         stop("Invalid value for family option")
     }

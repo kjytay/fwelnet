@@ -77,6 +77,7 @@
 #' cvfit4 <- cv.fwelnet(x, y, z, keep = TRUE)
 #'
 #' @importFrom stats predict
+#' @importFrom glmnet glmnet coxnet.deviance
 #' @export
 cv.fwelnet <- function(x, y, z, family = c("gaussian", "binomial", "cox"), lambda = NULL,
                        type.measure = c("mse", "deviance", "class", "auc", "mae", "nll"),
@@ -150,7 +151,12 @@ cv.fwelnet <- function(x, y, z, family = c("gaussian", "binomial", "cox"), lambd
       if (family == "cox") {
         # If cox, add nll here?
         # fit on test data
-        fits[[ii]]$nll <- nll_cox(x[oo, , drop = F], y[oo, , drop = F], fits[[ii]]$beta)
+        fits[[ii]]$nll <- glmnet::coxnet.deviance(
+          x = x[oo, , drop = F],
+          y = y[oo, , drop = F],
+          beta = fits[[ii]]$beta
+        )
+
         # Get number of events in fold, if yy is Surv() obj. second column
         # is status with 1 == event
         # fits[[ii]]$n_events <- sum(y[oo, "status", drop = F])

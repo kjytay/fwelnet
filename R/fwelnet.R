@@ -65,6 +65,7 @@
 #' fwelnet(x, y, z, ave_mode = 2, thresh_mode = 2)
 #'
 #' @importFrom stats median sd
+#' @importFrom glmnet glmnet
 #' @export
 fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "cox"),
                     alpha = 1, standardize = TRUE, max_iter = 1, ave_mode = 1,
