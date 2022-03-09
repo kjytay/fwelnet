@@ -77,6 +77,8 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
     }
 
     # Allow data.frame/categorical input for survival without intercept
+    # This is problematic though since it changes the number of columns in X
+    # and z has to be pre-specified based on the "effective" ncol(x)
     if (is.data.frame(x)) {
       if (inherits(y, "Surv")) {
         x <- model.matrix(~ . -1, x)
@@ -117,6 +119,7 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
                                  standardize = FALSE)
         lambda <- glmfit$lambda
     } else {
+        lambda <- as.double(rev(sort(lambda)))
         glmfit <- glmnet::glmnet(x, y, alpha = alpha, family = family,
                                  standardize = FALSE, lambda = lambda)
     }
