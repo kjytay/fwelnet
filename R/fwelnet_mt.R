@@ -12,6 +12,7 @@
 #' @param verbose Display informative message on the state of the mt fit.
 #' @param ... Passed to [`fwelnet()`[]
 #'
+#' @export
 #' @importFrom survival Surv
 #' @importFrom glmnet cv.glmnet
 #' @return A `list` containing per=cause beta matrices for each iteration step
@@ -64,8 +65,11 @@ fwelnet_mt_cox <- function(data, causes = 1:2,
 
   # Alg step 1) Initialize b1_0, b2_0 at lambda.min glmnet solution
   # for y_1, y_2 respectively
-  b1_0 <- coef(glmnet::cv.glmnet(X, y1, family = "cox", alpha = alpha))
-  b2_0 <- coef(glmnet::cv.glmnet(X, y2, family = "cox", alpha = alpha))
+  gl1 <- glmnet::cv.glmnet(X, y1, family = "cox", alpha = alpha)
+  gl2 <- glmnet::cv.glmnet(X, y2, family = "cox", alpha = alpha)
+
+  b1_0 <- gl1$glmnet.fit$beta[, which(gl1$lambda == gl1$lambda.min)]
+  b2_0 <- gl2$glmnet.fit$beta[, which(gl2$lambda == gl2$lambda.min)]
 
   # Hold betas in matrix, columns = iter+1, rows = p
   # beta1[j, k] holds cause-1 beta_j at iteration k+1
@@ -88,14 +92,14 @@ fwelnet_mt_cox <- function(data, causes = 1:2,
     z2 <- abs(beta1[, k, drop = FALSE])
 
     # Get betas from fwelnet fit, requires finding lambda.min via cv first
-    lambda_min <- cv.fwelnet(X, y2, z2, family = "cox", alpha = alpha, ...)$lambda.min
-    beta2[, k + 1] <- fwelnet(X, y2, z2, family = "cox", lambda = lambda_min, alpha = alpha, ...)$beta
+    fw1 <- cv.fwelnet(X, y2, z2, family = "cox", alpha = alpha, ...)
+    beta2[, k + 1] <- fw1$glmfit$beta[,  which(fw1$lambda == fw1$lambda.min)]
 
     # Alg step 2b)
     z1 <- abs(beta2[, k + 1, drop = FALSE])
 
-    lambda_min <- cv.fwelnet(X, y1, z1, family = "cox", alpha = alpha, ...)$lambda.min
-    beta1[, k + 1] <- fwelnet(X, y1, z1, family = "cox", lambda = lambda_min, alpha = alpha, ...)$beta
+    fw2 <- cv.fwelnet(X, y1, z1, family = "cox", alpha = alpha, ...)
+    beta1[, k + 1] <- fw2$glmfit$beta[,  which(fw2$lambda == fw2$lambda.min)]
 
 
     # Check beta differences, break if differences are 0
