@@ -14,6 +14,8 @@ LazyData: true
 RoxygenNote: 7.1.2
 Imports: glmnet, Matrix
 Suggests: 
+    testthat (>= 3.0.0),
     knitr,
     rmarkdown
 VignetteBuilder: knitr
+Config/testthat/edition: 3

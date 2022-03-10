@@ -35,11 +35,12 @@ lambda overrides this.}
 \item{type.measure}{Loss to use for cross-validation. Currently five options,
 not all available for all models. The default is type.measure="deviance",
 which uses squared-error for gaussian models (a.k.a type.measure="mse" there)
-and deviance for logistic regression. type.measure="class" applies to binomial
-logistic regression only, and gives misclassification error. type.measure="auc"
-is for two-class logistic regression only, and gives area under the ROC curve.
-type.measure="mse" or type.measure="mae" (mean absolute error) can be used by
-all models. For "cox", the negative log-likelihood is used.}
+and deviance for logistic and cox regression.
+`type.measure = "class"` applies to binomial logistic regression only,
+and gives misclassification error. `type.measure = "auc"` is for two-class
+logistic regression only, and gives area under the ROC curve.
+`type.measure = "mse"` or type.measure="mae" (mean absolute error) can be used by
+all models except cox.}
 
 \item{nfolds}{Number of folds for CV (default is 10). Although \code{nfolds}
 can be as large as the sample size (leave-one-out CV), it is not recommended

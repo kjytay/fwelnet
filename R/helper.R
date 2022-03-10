@@ -60,20 +60,6 @@ penalty_fn <- function(z, beta, theta, lambda, alpha = 1) {
         colSums((alpha * abs(beta) + (1 - alpha) * beta^2 / 2 ) / exp_term)
 }
 
-#' Cox NLL shortcut
-#'
-#' Get pred/nll from survival::coxph(), 0 iterations, coefs stay the same.
-#' Vectorized over nlam cols in beta
-#' @param x n x p matrix
-#' @param y Vector of length n
-#' @param beta p x nlam matrix
-nll_cox <- function(x, y, beta) {
-    vapply(seq_len(ncol(beta)), function(i) {
-        # nll = -loglik
-        -1 * survival::coxph(y ~ x, init = beta[, i], iter.max = 0)$loglik[[2]]
-    }, FUN.VALUE = numeric(1))
-}
-
 # NLL function
 # beta: p x nlam matrix
 # a0: vector of length nlam

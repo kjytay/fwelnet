@@ -20,11 +20,12 @@
 #' @param type.measure Loss to use for cross-validation. Currently five options,
 #' not all available for all models. The default is type.measure="deviance",
 #' which uses squared-error for gaussian models (a.k.a type.measure="mse" there)
-#' and deviance for logistic regression. type.measure="class" applies to binomial
-#' logistic regression only, and gives misclassification error. type.measure="auc"
-#' is for two-class logistic regression only, and gives area under the ROC curve.
-#' type.measure="mse" or type.measure="mae" (mean absolute error) can be used by
-#' all models. For "cox", the negative log-likelihood is used.
+#' and deviance for logistic and cox regression.
+#' `type.measure = "class"` applies to binomial logistic regression only,
+#' and gives misclassification error. `type.measure = "auc"` is for two-class
+#' logistic regression only, and gives area under the ROC curve.
+#' `type.measure = "mse"` or type.measure="mae" (mean absolute error) can be used by
+#' all models except cox.
 #' @param nfolds Number of folds for CV (default is 10). Although \code{nfolds}
 #' can be as large as the sample size (leave-one-out CV), it is not recommended
 #' for large datasets. Smallest value allowable is \code{nfolds = 3}.
@@ -97,11 +98,11 @@ cv.fwelnet <- function(x, y, z, family = c("gaussian", "binomial", "cox"), lambd
       # Previous behaviour
       # type.measure <- ifelse(family == "gaussian", "mse", "deviance")
 
-      # Setting cox -> nll, and deviance for binomial as previous default
+      # Setting cox -> deviance, and deviance for binomial as previous default
         type.measure <- switch (family,
           "gaussian" = "mse",
           "binomial" = "deviance",
-          "cox" = "nll"
+          "cox" = "deviance"
         )
     } else {
         type.measure <- match.arg(type.measure)
@@ -194,9 +195,8 @@ cv.fwelnet <- function(x, y, z, family = c("gaussian", "binomial", "cox"), lambd
 
     # Hacky special handling for the somewhat incomplete cox case
     # FIXME: All of this should just use glmnet machinery but time is finite
-    # browser()
     if (family == "cox") {
-      # average nll per lambda across folds (rows = folds, cols = lambdas)
+      # average deviance per lambda across folds (rows = folds, cols = lambdas)
       mean_nll_per_lambda <- apply(cvstuff$cvraw, 2, mean)
       # index of lambda with smallest nll
       best_lambda_i <- which.min(mean_nll_per_lambda)
