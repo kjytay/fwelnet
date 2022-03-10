@@ -26,7 +26,7 @@ fwelnet_mt_cox <- function(data, causes = 1:2,
   rowidx <- list()
   for (i in causes) {
     # hold row ids for events of each cause
-    rowidx[[i]] <- which(sim1$status == i)
+    rowidx[[i]] <- which(data$status == i)
   }
 
   # Slow copy of data :(

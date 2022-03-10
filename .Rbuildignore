@@ -1,3 +1,5 @@
 ^fwelnet\.Rproj$
 ^\.Rproj\.user$
 ^survival-experiments$
+^\.github$
+^README\.Rmd$

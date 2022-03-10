@@ -36,6 +36,7 @@
 #' predict(fit, xnew = x[1:5, ], type = "response")
 #'
 #' @export
+#' @importFrom stats model.matrix coef
 predict.fwelnet <- function(object, xnew, type = c("link", "response", "coefficients"),
                             ...) {
     type <- match.arg(type)
