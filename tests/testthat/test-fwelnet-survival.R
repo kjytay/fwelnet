@@ -47,7 +47,7 @@ test_that("CV for cox is not much slower than glmnet", {
   t1 <- system.time(cv.fwelnet(x, y, z, family = "cox"))
   t2 <- system.time(glmnet::cv.glmnet(x, y, family = "cox"))
 
-  expect_equal(mean(t1), mean(t2), tolerance = 1e-2)
+  expect_equal(mean(t1), mean(t2), tolerance = 0.1)
 })
 
 
