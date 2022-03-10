@@ -37,7 +37,7 @@ test_that("Not-parity with glmnet", {
 
 lambda_seq <- seq(1e-4, .5, length.out = 20)
 
-test_that("CV parity with glmnet wrt lambda", {
+test_that("CV parity with glmnet", {
   # if z = 1, should be same as glmnet
   z <- matrix(1, ncol = 1, nrow = p)
 
