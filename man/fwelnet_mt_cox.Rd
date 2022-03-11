@@ -8,6 +8,7 @@ fwelnet_mt_cox(
   data,
   causes = 1:2,
   mt_max_iter = 5,
+  z_scale = 1,
   alpha = 1,
   verbose = FALSE,
   ...
@@ -22,14 +23,16 @@ with outcome variables assumed to be named `"time"` and `""status`.}
 \item{mt_max_iter}{`[5]` number of mt-iterations to perform. Will break early
 if no change in per-cause beta vector between iterations is detected.}
 
-\item{alpha}{Passed to [`glmnet()`] and [`fwelnet()`]}
+\item{z_scale}{`[1]` Scalar for `z = abs(beta)` step.}
+
+\item{alpha}{`[1]` Passed to [`glmnet()`] and [`fwelnet()`].}
 
 \item{verbose}{Display informative message on the state of the mt fit.}
 
 \item{...}{Passed to [`fwelnet()`[]}
 }
 \value{
-A `list` containing per=cause beta matrices for each iteration step
+A `list` containing per-cause beta matrices for each iteration step
 }
 \description{
 Survival-focused implementation of the fwelnet-multitask algorithm described

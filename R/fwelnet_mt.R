@@ -8,17 +8,19 @@
 #' @param causes Integer vector indicating causes, e.g. `1:2` for two causes.
 #' @param mt_max_iter `[5]` number of mt-iterations to perform. Will break early
 #' if no change in per-cause beta vector between iterations is detected.
-#' @param alpha Passed to [`glmnet()`] and [`fwelnet()`]
+#' @param z_scale `[1]` Scalar for `z = abs(beta)` step.
+#' @param alpha `[1]` Passed to [`glmnet()`] and [`fwelnet()`].
 #' @param verbose Display informative message on the state of the mt fit.
 #' @param ... Passed to [`fwelnet()`[]
 #'
 #' @export
 #' @importFrom survival Surv
 #' @importFrom glmnet cv.glmnet
-#' @return A `list` containing per=cause beta matrices for each iteration step
+#' @return A `list` containing per-cause beta matrices for each iteration step
 #'
 fwelnet_mt_cox <- function(data, causes = 1:2,
                            mt_max_iter = 5,
+                           z_scale = 1,
                            alpha = 1, # pass to glmnet and fwelnet
                            verbose = FALSE, ...) {
 
@@ -89,14 +91,14 @@ fwelnet_mt_cox <- function(data, causes = 1:2,
     if (verbose) message("k = ", k)
 
     # Alg step 2a)
-    z2 <- abs(beta1[, k, drop = FALSE])
+    z2 <- z_scale * abs(beta1[, k, drop = FALSE])
 
     # Get betas from fwelnet fit, requires finding lambda.min via cv first
     fw1 <- cv.fwelnet(X, y2, z2, family = "cox", alpha = alpha, ...)
     beta2[, k + 1] <- fw1$glmfit$beta[,  which(fw1$lambda == fw1$lambda.min)]
 
     # Alg step 2b)
-    z1 <- abs(beta2[, k + 1, drop = FALSE])
+    z1 <- z_scale * abs(beta2[, k + 1, drop = FALSE])
 
     fw2 <- cv.fwelnet(X, y1, z1, family = "cox", alpha = alpha, ...)
     beta1[, k + 1] <- fw2$glmfit$beta[,  which(fw2$lambda == fw2$lambda.min)]
