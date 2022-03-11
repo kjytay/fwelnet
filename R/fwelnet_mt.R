@@ -4,7 +4,7 @@
 #' in Algorithm 2 on page 13 (Tay et. al. 2020)
 #'
 #' @param data A data.frame or matrix holding predictors and outcome,
-#' with outcome variables assumed to be named `"time"` and `""status`.
+#' with outcome variables assumed to be named `"time"` and `"status"`.
 #' @param causes Integer vector indicating causes, e.g. `1:2` for two causes.
 #' @param mt_max_iter `[5]` number of mt-iterations to perform. Will break early
 #' if no change in per-cause beta vector between iterations is detected.

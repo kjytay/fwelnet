@@ -17,30 +17,30 @@ fwelnet_mt_cox(
 }
 \arguments{
 \item{data}{A data.frame or matrix holding predictors and outcome,
-with outcome variables assumed to be named `"time"` and `""status`.}
+with outcome variables assumed to be named \code{"time"} and \code{"status"}.}
 
-\item{causes}{Integer vector indicating causes, e.g. `1:2` for two causes.}
+\item{causes}{Integer vector indicating causes, e.g. \code{1:2} for two causes.}
 
-\item{mt_max_iter}{`[5]` number of mt-iterations to perform. Will break early
+\item{mt_max_iter}{\verb{[5]} number of mt-iterations to perform. Will break early
 if no change in per-cause beta vector between iterations is detected.
-If set to `0`, no `fwelnet` iteration will be performed and the returned
-coefficients will be the result of fitting a cause-specific `glmnet`.}
+If set to \code{0}, no \code{fwelnet} iteration will be performed and the returned
+coefficients will be the result of fitting a cause-specific \code{glmnet}.}
 
-\item{z_scale}{`[1]` Scalar for `z = abs(beta)` step.}
+\item{z_scale}{\verb{[1]} Scalar for \code{z = abs(beta)} step.}
 
-\item{z_method}{`["original"]` Either assign `z1` to be informed by `beta2`
+\item{z_method}{\verb{["original"]} Either assign \code{z1} to be informed by \code{beta2}
 of the current iteration (default behavior, as described in Algorithm 2
-in Tay et. al. 2020), or `"aligned"` to have both `z1` and `z2` be informed
-by `beta2` and `beta1` from the previous iteration step respectively.}
+in Tay et. al. 2020), or \code{"aligned"} to have both \code{z1} and \code{z2} be informed
+by \code{beta2} and \code{beta1} from the previous iteration step respectively.}
 
-\item{alpha}{`[1]` Passed to [`glmnet()`] and [`fwelnet()`].}
+\item{alpha}{\verb{[1]} Passed to \code{\link[=glmnet]{glmnet()}} and \code{\link[=fwelnet]{fwelnet()}}.}
 
 \item{verbose}{Display informative message on the state of the mt fit.}
 
-\item{...}{Passed to [`fwelnet()`]}
+\item{...}{Passed to \code{\link[=fwelnet]{fwelnet()}}}
 }
 \value{
-A `list` containing per-cause beta matrices for each iteration step
+A \code{list} containing per-cause beta matrices for each iteration step
 }
 \description{
 Survival-focused implementation of the fwelnet-multitask algorithm described

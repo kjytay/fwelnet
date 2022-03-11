@@ -1,17 +1,17 @@
 #' Plot the cross-validation curve produced by "cv.fwelnet" object
 #'
-#' Plots the cross-validation curve produced by a \code{cv.fwelnet} object, along
-#' with upper and lower standard deviation curves, as a function of the \code{lambda}
+#' Plots the cross-validation curve produced by a `cv.fwelnet` object, along
+#' with upper and lower standard deviation curves, as a function of the `lambda`
 #' values used.
 #'
 #' A plot is produced and nothing is returned.
 #'
-#' @param x Fitted "\code{cv.fwelnet}" object.
-#' @param sign.lambda Either plot against \code{log(lambda)} (default) or
-#' \code{-log(lambda)} (if \code{sign.lambda = -1}).
+#' @param x Fitted "`cv.fwelnet`" object.
+#' @param sign.lambda Either plot against `log(lambda)` (default) or
+#' `-log(lambda)` (if `sign.lambda = -1`).
 #' @param ... Other graphical paramters to plot.
 #'
-#' @seealso \code{\link{fwelnet}} and \code{\link{cv.fwelnet}}.
+#' @seealso [fwelnet()] and [cv.fwelnet()].
 #'
 #' @examples
 #' set.seed(1)

@@ -3,52 +3,52 @@
 #' Fit a model with feature-weighted elastic net for a path of lambda values.
 #' Fits linear and logistic regression models.
 #'
-#' \code{fwelnet} always mean centers the columns of the \code{x} matrix. If
-#' \code{standardize=TRUE}, \code{fwelnet} will also scale the columns to have
-#' standard deviation 1. In all cases, the \code{beta} coefficients returned are
-#' for the original \code{x} values (i.e. uncentered and unscaled).
+#' `fwelnet` always mean centers the columns of the `x` matrix. If
+#' `standardize=TRUE`, `fwelnet` will also scale the columns to have
+#' standard deviation 1. In all cases, the `beta` coefficients returned are
+#' for the original `x` values (i.e. uncentered and unscaled).
 #'
-#' @param x Input matrix, of dimension \code{nobs x nvars}; each row is
+#' @param x Input matrix, of dimension `nobs x nvars`; each row is
 #' an observation vector.
-#' @param y Response variable. Quantitative for \code{family = "gaussian"}. For
-#' \code{family="binomial"}, should be a numeric vector consisting of 0s and 1s.
-#' @param z Feature of features matrix, with dimension \code{nvars x nfeaturevars}.
-#' @param lambda A user supplied \code{lambda} sequence. Typical usage is to
-#' have the program compute its own \code{lambda} sequence; supplying a value of
+#' @param y Response variable. Quantitative for `family = "gaussian"`. For
+#' `family="binomial"`, should be a numeric vector consisting of 0s and 1s.
+#' @param z Feature of features matrix, with dimension `nvars x nfeaturevars`.
+#' @param lambda A user supplied `lambda` sequence. Typical usage is to
+#' have the program compute its own `lambda` sequence; supplying a value of
 #' lambda overrides this.
-#' @param family Response type. Either \code{"gaussian"} (default) for linear
-#' regression or \code{"binomial"} for logistic regression.
+#' @param family Response type. Either `"gaussian"` (default) for linear
+#' regression or `"binomial"` for logistic regression.
 #' @param alpha The elastic net mixing hyperparameter, a real value number
 #' between 0 and 1 (inclusive). Default value is 1.
-#' @param standardize If \code{TRUE}, the columns of the input matrix are
-#' standardized before the algorithm is run. Default is \code{TRUE}.
+#' @param standardize If `TRUE`, the columns of the input matrix are
+#' standardized before the algorithm is run. Default is `TRUE`.
 #' @param max_iter The number of iterations for the optimization. Default is 1.
 #' @param ave_mode If equal to 1 (default), the gradient descent direction for
-#' \code{theta} is the mean gradient across the lambda values. If equal to 2,
+#' `theta` is the mean gradient across the lambda values. If equal to 2,
 #' it is the component-wise median gradient across the lambda values.
 #' @param thresh_mode If equal to 1 (default), backtracking line search for
-#' \code{theta} is done so that the mean objective function (across lambda
+#' `theta` is done so that the mean objective function (across lambda
 #' values) decreases. If equal to 2, it is done so that the median objective
 #' function decreases.
-#' @param t The initial step size for \code{theta} backtracking line search
+#' @param t The initial step size for `theta` backtracking line search
 #' (default value is 1).
-#' @param a The factor by which step size is decreased in \code{theta}
+#' @param a The factor by which step size is decreased in `theta`
 #' backtracking line search (default value is 0.5).
 #' @param thresh If the mean/median objective function does not decrease by at
 #' least this factor, we terminate the optimization early. Default is 1e-4.
-#' @param verbose If \code{TRUE}, prints information to console as model is
-#' being fit. Default is \code{FALSE}.
+#' @param verbose If `TRUE`, prints information to console as model is
+#' being fit. Default is `FALSE`.
 #'
-#' @return An object of class \code{"fwelnet"}.
-#' \item{beta}{A \code{p x length(lambda)} matrix of coefficients.}
-#' \item{theta}{Theta value, a \code{nfeaturevars x 1} matrix.}
-#' \item{a0}{Intercept sequence of length \code{length(lambda)}.}
-#' \item{lambda}{The actual sequence of \code{lambda} values used.}
+#' @return An object of class `"fwelnet"`.
+#' \item{beta}{A `p x length(lambda)` matrix of coefficients.}
+#' \item{theta}{Theta value, a `nfeaturevars x 1` matrix.}
+#' \item{a0}{Intercept sequence of length `length(lambda)`.}
+#' \item{lambda}{The actual sequence of `lambda` values used.}
 #' \item{nzero}{The number of non-zero coefficients for each value of
-#' \code{lambda}.}
+#' `lambda`.}
 #' \item{family}{Response type.}
 #' \item{call}{The call that produced this object.}
-#' \item{obj}{A \code{max_iter + 1} by \code{length(lambda)} matrix of
+#' \item{obj}{A `max_iter + 1` by `length(lambda)` matrix of
 #' objective function values. (Number of rows could be fewer if the optimization
 #' stopped early.)}
 #'

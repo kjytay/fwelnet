@@ -47,5 +47,5 @@ predict(cvfit, xnew = x[1:5, ], s = "lambda.min")
 
 }
 \seealso{
-\code{\link{cv.fwelnet}} and \code{\link{predict.fwelnet}}.
+\code{\link[=cv.fwelnet]{cv.fwelnet()}} and \code{\link[=predict.fwelnet]{predict.fwelnet()}}.
 }

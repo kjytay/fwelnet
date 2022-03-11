@@ -12,10 +12,10 @@
 \item{xnew}{Matrix of new values for \code{x} at which predictions are to
 be made.}
 
-\item{type}{Type of prediction required. Type `"link"` (default) gives the
-linear predictors. Type `"response"` gives the linear predictor for "gaussian"
+\item{type}{Type of prediction required. Type \code{"link"} (default) gives the
+linear predictors. Type \code{"response"} gives the linear predictor for "gaussian"
 and fitted probabilities for "binomial" family.
-`"coefficients"` will return the beta vector or matrix.}
+\code{"coefficients"} will return the beta vector or matrix.}
 
 \item{...}{Potentially other arguments to be passed to and from methods;
 currently not in use.}
@@ -47,5 +47,5 @@ predict(fit, xnew = x[1:5, ], type = "response")
 
 }
 \seealso{
-\code{\link{fwelnet}}.
+\code{\link[=fwelnet]{fwelnet()}}.
 }

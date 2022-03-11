@@ -1,21 +1,21 @@
 #' Cross-validation for fwelnet
 #'
-#' Does \code{k}-fold cross-validation for \code{fwelnet}.
+#' Does `k`-fold cross-validation for `fwelnet`.
 #'
-#' This function runs \code{fwelnet nfolds+1} times: the first to get the
-#' \code{lambda} sequence, and the remaining \code{nfolds} times to compute the
+#' This function runs `fwelnet nfolds+1` times: the first to get the
+#' `lambda` sequence, and the remaining `nfolds` times to compute the
 #' fit with each of the folds omitted. The error is accumulated, and the mean
 #' error and standard deviation over the folds is computed. Note that
-#' \code{cv.pcLasso} does NOT search for values of \code{alpha}. A specific
-#' value of \code{alpha} should be supplied.
+#' `cv.pcLasso` does NOT search for values of `alpha`. A specific
+#' value of `alpha` should be supplied.
 #'
-#' @param x \code{x} matrix as in \code{fwelnet}.
-#' @param y \code{y} matrix as in \code{fwelnet}.
-#' @param z \code{z} matrix as in \code{fwelnet}.
-#' @param family Response type. Either \code{"gaussian"} (default) for linear
-#' regression or \code{"binomial"} for logistic regression.
-#' @param lambda A user supplied \code{lambda} sequence. Typical usage is to
-#' have the program compute its own \code{lambda} sequence; supplying a value of
+#' @param x `x` matrix as in `fwelnet`.
+#' @param y `y` matrix as in `fwelnet`.
+#' @param z `z` matrix as in `fwelnet`.
+#' @param family Response type. Either `"gaussian"` (default) for linear
+#' regression or `"binomial"` for logistic regression.
+#' @param lambda A user supplied `lambda` sequence. Typical usage is to
+#' have the program compute its own `lambda` sequence; supplying a value of
 #' lambda overrides this.
 #' @param type.measure Loss to use for cross-validation. Currently five options,
 #' not all available for all models. The default is type.measure="deviance",
@@ -26,36 +26,36 @@
 #' logistic regression only, and gives area under the ROC curve.
 #' `type.measure = "mse"` or type.measure="mae" (mean absolute error) can be used by
 #' all models except cox.
-#' @param nfolds Number of folds for CV (default is 10). Although \code{nfolds}
+#' @param nfolds Number of folds for CV (default is 10). Although `nfolds`
 #' can be as large as the sample size (leave-one-out CV), it is not recommended
-#' for large datasets. Smallest value allowable is \code{nfolds = 3}.
-#' @param foldid An optional vector of values between 1 and \code{nfolds}
-#' identifying what fold each observation is in. If supplied, \code{nfolds} can
+#' for large datasets. Smallest value allowable is `nfolds = 3`.
+#' @param foldid An optional vector of values between 1 and `nfolds`
+#' identifying what fold each observation is in. If supplied, `nfolds` can
 #' be missing.
-#' @param keep If \code{keep = TRUE}, a prevalidated array is returned
+#' @param keep If `keep = TRUE`, a prevalidated array is returned
 #' containing fitted values for each observation at each value of lambda. This
 #' means these fits are computed with this observation and the rest of its fold
-#' omitted. Default is \code{FALSE}.
+#' omitted. Default is `FALSE`.
 #' @param verbose Print information as model is being fit? Default is FALSE.
-#' @param ... Other arguments that can be passed to \code{fwelnet}.
+#' @param ... Other arguments that can be passed to `fwelnet`.
 #'
-#' @return An object of class \code{"cv.fwelnet"}, which is a list with the
+#' @return An object of class `"cv.fwelnet"`, which is a list with the
 #' ingredients of the cross-validation fit.
-#' \item{glmfit}{A fitted \code{fwelnet} object for the full data.}
-#' \item{lambda}{The values of \code{lambda} used in the fits.}
-#' \item{nzero}{The number of non-zero coefficients in the model \code{glmfit}.}
-#' \item{fit.preval}{If \code{keep=TRUE}, this is the array of prevalidated
+#' \item{glmfit}{A fitted `fwelnet` object for the full data.}
+#' \item{lambda}{The values of `lambda` used in the fits.}
+#' \item{nzero}{The number of non-zero coefficients in the model `glmfit`.}
+#' \item{fit.preval}{If `keep=TRUE`, this is the array of prevalidated
 #'   fits.}
 #' \item{cvm}{The mean cross-validated error: a vector of length
-#'   \code{length(lambda)}.}
-#' \item{cvsd}{Estimate of standard error of \code{cvm}.}
-#' \item{cvlo}{Lower curve = \code{cvm - cvsd}.}
-#' \item{cvup}{Upper curve = \code{cvm + cvsd}.}
-#' \item{lambda.min}{The value of \code{lambda} that gives minimum
-#'   \code{cvm}.}
-#' \item{lambda.1se}{The largest value of \code{lambda} such that the CV
+#'   `length(lambda)`.}
+#' \item{cvsd}{Estimate of standard error of `cvm`.}
+#' \item{cvlo}{Lower curve = `cvm - cvsd`.}
+#' \item{cvup}{Upper curve = `cvm + cvsd`.}
+#' \item{lambda.min}{The value of `lambda` that gives minimum
+#'   `cvm`.}
+#' \item{lambda.1se}{The largest value of `lambda` such that the CV
 #'   error is within one standard error of the minimum.}
-#' \item{foldid}{If \code{keep=TRUE}, the fold assignments used.}
+#' \item{foldid}{If `keep=TRUE`, the fold assignments used.}
 #' \item{name}{Name of error measurement used for CV.}
 #' \item{call}{The call that produced this object.}
 #'

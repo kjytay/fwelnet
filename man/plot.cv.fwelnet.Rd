@@ -38,5 +38,5 @@ plot(cvfit, sign.lambda = -1)
 
 }
 \seealso{
-\code{\link{fwelnet}} and \code{\link{cv.fwelnet}}.
+\code{\link[=fwelnet]{fwelnet()}} and \code{\link[=cv.fwelnet]{cv.fwelnet()}}.
 }

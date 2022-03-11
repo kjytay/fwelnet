@@ -1,26 +1,26 @@
 #' Make predictions from a "cv.fwelnet" object
 #'
 #' This function returns the predictions for a new data matrix from a
-#' cross-validated \code{fwelnet} model by using the stored "\code{glmfit}"
-#' object and the optimal value chosen for \code{lambda}.
+#' cross-validated `fwelnet` model by using the stored "`glmfit`"
+#' object and the optimal value chosen for `lambda`.
 #'
 #' This function makes it easier to use the results of cross-validation to make
 #' a prediction.
 #'
-#' @param object Fitted "\code{cv.fwelnet}" object.
-#' @param xnew Matrix of new values for \code{x} at which predictions are to
+#' @param object Fitted "`cv.fwelnet`" object.
+#' @param xnew Matrix of new values for `x` at which predictions are to
 #' be made.
-#' @param s Value of the penalty parameter \code{lambda} at which predictions are
-#' required. Default is the value \code{s="lambda.1se"} stored in the CV
-#' \code{fit}. Alternatively, \code{s="lambda.min"} can be used.
-#' @param ... Other arguments to be passed to \code{predict.fwelnet}.
+#' @param s Value of the penalty parameter `lambda` at which predictions are
+#' required. Default is the value `s="lambda.1se"` stored in the CV
+#' `fit`. Alternatively, `s="lambda.min"` can be used.
+#' @param ... Other arguments to be passed to `predict.fwelnet`.
 #'
-#' @return Predictions which the cross-validated model makes for \code{xnew} at
-#' the optimal value of \code{lambda}. Note that the default is the "lambda.1se" for lambda,
-#' to make this function consistent with \code{cv.glmnet} in the \code{glmnet}
+#' @return Predictions which the cross-validated model makes for `xnew` at
+#' the optimal value of `lambda`. Note that the default is the "lambda.1se" for lambda,
+#' to make this function consistent with `cv.glmnet` in the `glmnet`
 #' package.
 #'
-#' @seealso \code{\link{cv.fwelnet}} and \code{\link{predict.fwelnet}}.
+#' @seealso [cv.fwelnet()] and [predict.fwelnet()].
 #'
 #' @examples
 #' set.seed(1)

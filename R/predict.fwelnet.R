@@ -1,10 +1,10 @@
 #' Make predictions from a "fwelnet" object
 #'
-#' This function returns the predictions from a "\code{fwelnet}" object
+#' This function returns the predictions from a "`fwelnet`" object
 #' for a new data matrix.
 #'
-#' @param object Fitted "\code{fwelnet}" object.
-#' @param xnew Matrix of new values for \code{x} at which predictions are to
+#' @param object Fitted "`fwelnet`" object.
+#' @param xnew Matrix of new values for `x` at which predictions are to
 #' be made.
 #' @param type Type of prediction required. Type `"link"` (default) gives the
 #' linear predictors. Type `"response"` gives the linear predictor for "gaussian"
@@ -13,9 +13,9 @@
 #' @param ... Potentially other arguments to be passed to and from methods;
 #' currently not in use.
 #'
-#' @return Predictions which the model \code{object} makes at \code{xnew}.
+#' @return Predictions which the model `object` makes at `xnew`.
 #'
-#' @seealso \code{\link{fwelnet}}.
+#' @seealso [fwelnet()].
 #'
 #' @examples
 #' set.seed(1)

@@ -22,13 +22,13 @@ fwelnet(
 )
 }
 \arguments{
-\item{x}{Input matrix, of dimension \code{nobs x nvars}; each row is
+\item{x}{Input matrix, of dimension \verb{nobs x nvars}; each row is
 an observation vector.}
 
 \item{y}{Response variable. Quantitative for \code{family = "gaussian"}. For
 \code{family="binomial"}, should be a numeric vector consisting of 0s and 1s.}
 
-\item{z}{Feature of features matrix, with dimension \code{nvars x nfeaturevars}.}
+\item{z}{Feature of features matrix, with dimension \verb{nvars x nfeaturevars}.}
 
 \item{lambda}{A user supplied \code{lambda} sequence. Typical usage is to
 have the program compute its own \code{lambda} sequence; supplying a value of
@@ -68,8 +68,8 @@ being fit. Default is \code{FALSE}.}
 }
 \value{
 An object of class \code{"fwelnet"}.
-\item{beta}{A \code{p x length(lambda)} matrix of coefficients.}
-\item{theta}{Theta value, a \code{nfeaturevars x 1} matrix.}
+\item{beta}{A \verb{p x length(lambda)} matrix of coefficients.}
+\item{theta}{Theta value, a \verb{nfeaturevars x 1} matrix.}
 \item{a0}{Intercept sequence of length \code{length(lambda)}.}
 \item{lambda}{The actual sequence of \code{lambda} values used.}
 \item{nzero}{The number of non-zero coefficients for each value of

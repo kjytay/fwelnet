@@ -36,10 +36,10 @@ lambda overrides this.}
 not all available for all models. The default is type.measure="deviance",
 which uses squared-error for gaussian models (a.k.a type.measure="mse" there)
 and deviance for logistic and cox regression.
-`type.measure = "class"` applies to binomial logistic regression only,
-and gives misclassification error. `type.measure = "auc"` is for two-class
+\code{type.measure = "class"} applies to binomial logistic regression only,
+and gives misclassification error. \code{type.measure = "auc"} is for two-class
 logistic regression only, and gives area under the ROC curve.
-`type.measure = "mse"` or type.measure="mae" (mean absolute error) can be used by
+\code{type.measure = "mse"} or type.measure="mae" (mean absolute error) can be used by
 all models except cox.}
 
 \item{nfolds}{Number of folds for CV (default is 10). Although \code{nfolds}
@@ -66,16 +66,16 @@ ingredients of the cross-validation fit.
 \item{lambda}{The values of \code{lambda} used in the fits.}
 \item{nzero}{The number of non-zero coefficients in the model \code{glmfit}.}
 \item{fit.preval}{If \code{keep=TRUE}, this is the array of prevalidated
-  fits.}
+fits.}
 \item{cvm}{The mean cross-validated error: a vector of length
-  \code{length(lambda)}.}
+\code{length(lambda)}.}
 \item{cvsd}{Estimate of standard error of \code{cvm}.}
 \item{cvlo}{Lower curve = \code{cvm - cvsd}.}
 \item{cvup}{Upper curve = \code{cvm + cvsd}.}
 \item{lambda.min}{The value of \code{lambda} that gives minimum
-  \code{cvm}.}
+\code{cvm}.}
 \item{lambda.1se}{The largest value of \code{lambda} such that the CV
-  error is within one standard error of the minimum.}
+error is within one standard error of the minimum.}
 \item{foldid}{If \code{keep=TRUE}, the fold assignments used.}
 \item{name}{Name of error measurement used for CV.}
 \item{call}{The call that produced this object.}
@@ -84,7 +84,7 @@ ingredients of the cross-validation fit.
 Does \code{k}-fold cross-validation for \code{fwelnet}.
 }
 \details{
-This function runs \code{fwelnet nfolds+1} times: the first to get the
+This function runs \verb{fwelnet nfolds+1} times: the first to get the
 \code{lambda} sequence, and the remaining \code{nfolds} times to compute the
 fit with each of the folds omitted. The error is accumulated, and the mean
 error and standard deviation over the folds is computed. Note that
