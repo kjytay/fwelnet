@@ -82,11 +82,11 @@ fwelnet_mt_cox <- function(data, causes = 1:2,
   b2_0 <- gl2$glmnet.fit$beta[, which(gl2$lambda == gl2$lambda.min)]
 
   # Hold betas in matrix, columns = iter+1, rows = p
-  # beta1[j, k] holds cause-1 beta_j at iteration k+1
+  # beta1[j, k] holds cause-1 beta_j at iteration k+1 with k = 1 being glmnet solution
   beta1 <- matrix(NA_real_, ncol = mt_max_iter + 1, nrow = ncol(X), dimnames = list(dimnames(X)[[2]]))
-  beta2 <- matrix(NA_real_, ncol = mt_max_iter + 1, nrow = ncol(X), dimnames = list(dimnames(X)[[2]]))
+  beta2 <- beta1
 
-  # coef returns sparse dgCMatrix, coerce to numeric for storage
+  # Initialize first col with glmnet fit
   beta1[, 1] <- as.numeric(b1_0)
   beta2[, 1] <- as.numeric(b2_0)
 
@@ -102,17 +102,17 @@ fwelnet_mt_cox <- function(data, causes = 1:2,
     z2 <- z_scale * abs(beta1[, k, drop = FALSE])
 
     # Get betas from fwelnet fit, requires finding lambda.min via cv first
-    fw1 <- cv.fwelnet(X, y2, z2, family = "cox", alpha = alpha, ...)
-    beta2[, k + 1] <- fw1$glmfit$beta[, which(fw1$lambda == fw1$lambda.min)]
+    fw2 <- cv.fwelnet(X, y2, z2, family = "cox", alpha = alpha, ...)
+    beta2[, k + 1] <- fw2$glmfit$beta[, which(fw2$lambda == fw2$lambda.min)]
 
     # Alg step 2b)
     z1 <- switch (z_method,
       "original" = z_scale * abs(beta2[, k + 1, drop = FALSE]),
-      "aligned" = z_scale * abs(beta2[, k, drop = FALSE])
+      "aligned"  = z_scale * abs(beta2[, k, drop = FALSE])
     )
 
-    fw2 <- cv.fwelnet(X, y1, z1, family = "cox", alpha = alpha, ...)
-    beta1[, k + 1] <- fw2$glmfit$beta[, which(fw2$lambda == fw2$lambda.min)]
+    fw1 <- cv.fwelnet(X, y1, z1, family = "cox", alpha = alpha, ...)
+    beta1[, k + 1] <- fw1$glmfit$beta[, which(fw1$lambda == fw1$lambda.min)]
 
     # Check beta differences, break if differences are 0
     beta1_diff <- beta1[, k] - beta1[, k + 1]
@@ -132,11 +132,10 @@ fwelnet_mt_cox <- function(data, causes = 1:2,
     }
 
     if (verbose) {
-      message("Change in beta1: ")
-      print(beta1_diff)
+      browser()
 
-      message("Change in beta2: ")
-      print(beta2_diff)
+      message("Change in beta{1,2}: ")
+      print(rbind(beta1_diff, beta2_diff), digits = 3)
     }
 
     # Increment k at the very last step
