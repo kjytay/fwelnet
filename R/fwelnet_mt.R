@@ -150,7 +150,9 @@ fwelnet_mt_cox <- function(data, causes = 1:2,
     # Check mt iterations later to assess reasonable values
     mt_iter = k - 1, # Adjust since k can't start at 0
     mt_max_iter = mt_max_iter,
+    converged = (k < mt_max_iter),
     z_scale = z_scale,
+    z_method = z_method
   )
 }
 
