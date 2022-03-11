@@ -2,13 +2,14 @@
 % Please edit documentation in R/fwelnet_mt.R
 \name{fwelnet_mt_cox}
 \alias{fwelnet_mt_cox}
-\title{fwelnet for multi-task learning}
+\title{Fit fwelnet for Multi-Task Learning}
 \usage{
 fwelnet_mt_cox(
   data,
   causes = 1:2,
   mt_max_iter = 5,
   z_scale = 1,
+  z_method = c("original", "aligned"),
   alpha = 1,
   verbose = FALSE,
   ...
@@ -21,15 +22,22 @@ with outcome variables assumed to be named `"time"` and `""status`.}
 \item{causes}{Integer vector indicating causes, e.g. `1:2` for two causes.}
 
 \item{mt_max_iter}{`[5]` number of mt-iterations to perform. Will break early
-if no change in per-cause beta vector between iterations is detected.}
+if no change in per-cause beta vector between iterations is detected.
+If set to `0`, no `fwelnet` iteration will be performed and the returned
+coefficients will be the result of fitting a cause-specific `glmnet`.}
 
 \item{z_scale}{`[1]` Scalar for `z = abs(beta)` step.}
+
+\item{z_method}{`["original"]` Either assign `z1` to be informed by `beta2`
+of the current iteration (default behavior, as described in Algorithm 2
+in Tay et. al. 2020), or `"aligned"` to have both `z1` and `z2` be informed
+by `beta2` and `beta1` from the previous iteration step respectively.}
 
 \item{alpha}{`[1]` Passed to [`glmnet()`] and [`fwelnet()`].}
 
 \item{verbose}{Display informative message on the state of the mt fit.}
 
-\item{...}{Passed to [`fwelnet()`[]}
+\item{...}{Passed to [`fwelnet()`]}
 }
 \value{
 A `list` containing per-cause beta matrices for each iteration step

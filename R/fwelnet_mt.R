@@ -1,4 +1,4 @@
-#' fwelnet for multi-task learning
+#' Fit fwelnet for Multi-Task Learning
 #'
 #' Survival-focused implementation of the fwelnet-multitask algorithm described
 #' in Algorithm 2 on page 13 (Tay et. al. 2020)
@@ -8,10 +8,16 @@
 #' @param causes Integer vector indicating causes, e.g. `1:2` for two causes.
 #' @param mt_max_iter `[5]` number of mt-iterations to perform. Will break early
 #' if no change in per-cause beta vector between iterations is detected.
+#' If set to `0`, no `fwelnet` iteration will be performed and the returned
+#' coefficients will be the result of fitting a cause-specific `glmnet`.
 #' @param z_scale `[1]` Scalar for `z = abs(beta)` step.
+#' @param z_method `["original"]` Either assign `z1` to be informed by `beta2`
+#' of the current iteration (default behavior, as described in Algorithm 2
+#' in Tay et. al. 2020), or `"aligned"` to have both `z1` and `z2` be informed
+#' by `beta2` and `beta1` from the previous iteration step respectively.
 #' @param alpha `[1]` Passed to [`glmnet()`] and [`fwelnet()`].
 #' @param verbose Display informative message on the state of the mt fit.
-#' @param ... Passed to [`fwelnet()`[]
+#' @param ... Passed to [`fwelnet()`]
 #'
 #' @export
 #' @importFrom survival Surv
@@ -21,11 +27,13 @@
 fwelnet_mt_cox <- function(data, causes = 1:2,
                            mt_max_iter = 5,
                            z_scale = 1,
+                           z_method = c("original", "aligned"),
                            alpha = 1, # pass to glmnet and fwelnet
                            verbose = FALSE, ...) {
 
-  # data prep ---------------------------------------------------------------
+  z_method <- match.arg(z_method)
 
+  # data prep ---------------------------------------------------------------
   rowidx <- list()
   for (i in causes) {
     # hold row ids for events of each cause
@@ -95,21 +103,31 @@ fwelnet_mt_cox <- function(data, causes = 1:2,
 
     # Get betas from fwelnet fit, requires finding lambda.min via cv first
     fw1 <- cv.fwelnet(X, y2, z2, family = "cox", alpha = alpha, ...)
-    beta2[, k + 1] <- fw1$glmfit$beta[,  which(fw1$lambda == fw1$lambda.min)]
+    beta2[, k + 1] <- fw1$glmfit$beta[, which(fw1$lambda == fw1$lambda.min)]
 
     # Alg step 2b)
-    z1 <- z_scale * abs(beta2[, k + 1, drop = FALSE])
+    z1 <- switch (z_method,
+      "original" = z_scale * abs(beta2[, k + 1, drop = FALSE]),
+      "aligned" = z_scale * abs(beta2[, k, drop = FALSE])
+    )
 
     fw2 <- cv.fwelnet(X, y1, z1, family = "cox", alpha = alpha, ...)
-    beta1[, k + 1] <- fw2$glmfit$beta[,  which(fw2$lambda == fw2$lambda.min)]
-
+    beta1[, k + 1] <- fw2$glmfit$beta[, which(fw2$lambda == fw2$lambda.min)]
 
     # Check beta differences, break if differences are 0
     beta1_diff <- beta1[, k] - beta1[, k + 1]
     beta2_diff <- beta2[, k] - beta2[, k + 1]
 
-    if (isTRUE(all.equal(beta1_diff, beta2_diff, rep(0, length(beta1_diff))))) {
-      if (verbose) message("No change in beta{1,2} after k = ", k)
+    beta1_stagnant <- isTRUE(all.equal(beta1_diff, rep(0, length(beta1_diff))))
+    beta2_stagnant <- isTRUE(all.equal(beta2_diff, rep(0, length(beta2_diff))))
+
+    if (verbose) {
+      if (beta1_stagnant) message("No change in beta1 after k = ", k)
+      if (beta2_stagnant) message("No change in beta2 after k = ", k)
+    }
+
+    if (beta1_stagnant & beta2_stagnant) {
+      message("No change in beta{1,2} at k = ", k)
       break
     }
 
@@ -130,8 +148,9 @@ fwelnet_mt_cox <- function(data, causes = 1:2,
     beta1 = beta1,
     beta2 = beta2,
     # Check mt iterations later to assess reasonable values
-    mt_iter = k,
-    mt_max_iter = mt_max_iter
+    mt_iter = k - 1, # Adjust since k can't start at 0
+    mt_max_iter = mt_max_iter,
+    z_scale = z_scale,
   )
 }
 
