@@ -132,8 +132,6 @@ fwelnet_mt_cox <- function(data, causes = 1:2,
     }
 
     if (verbose) {
-      browser()
-
       message("Change in beta{1,2}: ")
       print(rbind(beta1_diff, beta2_diff), digits = 3)
     }
