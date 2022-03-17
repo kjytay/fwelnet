@@ -70,7 +70,6 @@ fwelnet_mt_cox <- function(data, causes = 1:2,
   y1 <- survival::Surv(data$time, event = status_c1)
   y2 <- survival::Surv(data$time, event = status_c2)
 
-
   # fwelnet multi-task: Algorithm 2,  p. 13 ---------------------------------
 
   # Alg step 1) Initialize b1_0, b2_0 at lambda.min glmnet solution
@@ -108,7 +107,8 @@ fwelnet_mt_cox <- function(data, causes = 1:2,
     # Alg step 2b)
     z1 <- switch (z_method,
       "original" = z_scale * abs(beta2[, k + 1, drop = FALSE]),
-      "aligned"  = z_scale * abs(beta2[, k, drop = FALSE])
+      "aligned"  = z_scale * abs(beta2[, k, drop = FALSE]),
+      stop("z_method ", z_method, " not known")
     )
 
     fw1 <- cv.fwelnet(X, y1, z1, family = "cox", alpha = alpha, ...)
@@ -142,14 +142,18 @@ fwelnet_mt_cox <- function(data, causes = 1:2,
 
   # Returns betas and anything else that might be interesting
   list(
+    # History of betas
     beta1 = beta1,
     beta2 = beta2,
+    # final fwelnet fit objects for later predictions
+    fwfit1 = fw1,
+    fwfit2 = fw2,
     # Check mt iterations later to assess reasonable values
     mt_iter = k - 1, # Adjust since k can't start at 0
     mt_max_iter = mt_max_iter,
-    converged = (k < mt_max_iter),
+    converged = ((k - 1) < mt_max_iter),
+    # Values to experiment with
     z_scale = z_scale,
     z_method = z_method
   )
 }
-
