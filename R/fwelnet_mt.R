@@ -153,6 +153,7 @@ fwelnet_mt_cox <- function(data, causes = 1:2,
     mt_max_iter = mt_max_iter,
     converged = ((k - 1) < mt_max_iter),
     # Values to experiment with
+    alpha = alpha,
     z_scale = z_scale,
     z_method = z_method
   )
