@@ -12,12 +12,14 @@
 #' an observation vector.
 #' @param y Response variable. Quantitative for `family = "gaussian"`. For
 #' `family="binomial"`, should be a numeric vector consisting of 0s and 1s.
+#' For `famil = "cox"`, should be a [`survival::Surv`] object.
 #' @param z Feature of features matrix, with dimension `nvars x nfeaturevars`.
 #' @param lambda A user supplied `lambda` sequence. Typical usage is to
 #' have the program compute its own `lambda` sequence; supplying a value of
 #' lambda overrides this.
 #' @param family Response type. Either `"gaussian"` (default) for linear
-#' regression or `"binomial"` for logistic regression.
+#' regression, `"binomial"` for logistic regression, or `"cox"` for cox
+#' regression.
 #' @param alpha The elastic net mixing hyperparameter, a real value number
 #' between 0 and 1 (inclusive). Default value is 1.
 #' @param standardize If `TRUE`, the columns of the input matrix are
@@ -68,8 +70,8 @@
 #' @importFrom glmnet glmnet
 #' @export
 fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "cox"),
-                    alpha = 1, standardize = TRUE, max_iter = 1, ave_mode = 1,
-                    thresh_mode = 1, t = 1, a = 0.5, thresh = 1e-4,
+                    alpha = 1, standardize = TRUE, max_iter = 20, ave_mode = 1,
+                    thresh_mode = 1, t = 1, a = 0.5, thresh = 1e-3,
                     verbose = FALSE) {
     this.call <- match.call()
 

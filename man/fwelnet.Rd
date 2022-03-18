@@ -12,12 +12,12 @@ fwelnet(
   family = c("gaussian", "binomial", "cox"),
   alpha = 1,
   standardize = TRUE,
-  max_iter = 1,
+  max_iter = 20,
   ave_mode = 1,
   thresh_mode = 1,
   t = 1,
   a = 0.5,
-  thresh = 1e-04,
+  thresh = 0.001,
   verbose = FALSE
 )
 }
@@ -26,7 +26,8 @@ fwelnet(
 an observation vector.}
 
 \item{y}{Response variable. Quantitative for \code{family = "gaussian"}. For
-\code{family="binomial"}, should be a numeric vector consisting of 0s and 1s.}
+\code{family="binomial"}, should be a numeric vector consisting of 0s and 1s.
+For \code{famil = "cox"}, should be a \code{\link[survival:Surv]{survival::Surv}} object.}
 
 \item{z}{Feature of features matrix, with dimension \verb{nvars x nfeaturevars}.}
 
@@ -35,7 +36,8 @@ have the program compute its own \code{lambda} sequence; supplying a value of
 lambda overrides this.}
 
 \item{family}{Response type. Either \code{"gaussian"} (default) for linear
-regression or \code{"binomial"} for logistic regression.}
+regression, \code{"binomial"} for logistic regression, or \code{"cox"} for cox
+regression.}
 
 \item{alpha}{The elastic net mixing hyperparameter, a real value number
 between 0 and 1 (inclusive). Default value is 1.}
