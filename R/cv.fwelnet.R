@@ -190,7 +190,7 @@ cv.fwelnet <- function(x, y, z, family = c("gaussian", "binomial", "cox"), lambd
         type.measure = type.measure,
         grouped = TRUE # for compatibility? see above
       )
-      name <- "Partial Likelihood"
+      name <- "Cox Deviance"
     }
 
     # Hacky special handling for the somewhat incomplete cox case
@@ -203,18 +203,18 @@ cv.fwelnet <- function(x, y, z, family = c("gaussian", "binomial", "cox"), lambd
       lambda.min <- fit0$lambda[best_lambda_i]
 
       out <- list(
-        glmfit=fit0,
-        lambda=fit0$lambda,
-        nzero=fit0$nzero,
+        glmfit = fit0,
+        lambda = fit0$lambda,
+        nzero = fit0$nzero,
         # fit.preval=predmat.preval,
-        cvm=cvstuff$cvraw,
+        cvm = colMeans(cvstuff$cvraw),
         # cvsd=cvsd,
         # cvlo=cvlo,
         # cvup=cvup,
-        lambda.min=lambda.min,
+        lambda.min = lambda.min,
         # lambda.1se=lambda.1se,
         # foldid=foldid_copy,
-        name=name,
+        name = name,
         call = this.call
       )
       class(out) <- "cv.fwelnet"
