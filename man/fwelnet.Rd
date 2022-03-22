@@ -18,6 +18,7 @@ fwelnet(
   t = 1,
   a = 0.5,
   thresh = 0.001,
+  weight_fun = "original",
   verbose = FALSE
 )
 }
@@ -64,6 +65,14 @@ backtracking line search (default value is 0.5).}
 
 \item{thresh}{If the mean/median objective function does not decrease by at
 least this factor, we terminate the optimization early. Default is 1e-4.}
+
+\item{weight_fun}{The function relating \code{z} and \code{theta} resulting in penalization
+weights. Must be either \code{"original"} for the function implemented as in
+Tay et. al. (2020), or a function with parameters \code{z} and \code{theta}.
+
+\code{"original"} corresponds to
+
+\code{function(z, theta) mean(exp(z \%*\% theta)) * exp(- z \%*\% theta)}}
 
 \item{verbose}{If \code{TRUE}, prints information to console as model is
 being fit. Default is \code{FALSE}.}

@@ -32,6 +32,13 @@
 #' `theta` is done so that the mean objective function (across lambda
 #' values) decreases. If equal to 2, it is done so that the median objective
 #' function decreases.
+#' @param weight_fun A function relating `z` and `theta` resulting in penalization
+#'  weights. Must be either `"original"` for the function implemented as in
+#'  Tay et. al. (2020), or a function with parameters `z` and `theta`.
+#'  
+#'  `"original"` corresponds to
+#'  
+#'  `function(z, theta) mean(exp(z %*% theta)) * exp(- z %*% theta)`
 #' @param t The initial step size for `theta` backtracking line search
 #' (default value is 1).
 #' @param a The factor by which step size is decreased in `theta`
@@ -72,11 +79,16 @@
 fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "cox"),
                     alpha = 1, standardize = TRUE, max_iter = 20, ave_mode = 1,
                     thresh_mode = 1, t = 1, a = 0.5, thresh = 1e-3,
+                    weight_fun = "original",
                     verbose = FALSE) {
     this.call <- match.call()
 
     if (alpha > 1 || alpha < 0) {
         stop("alpha must be between 0 and 1 (inclusive)")
+    }
+
+    if (weight_fun == "original") {
+      weight_fun <- function(z, theta) mean(exp(z %*% theta)) * exp(- z %*% theta)
     }
 
     # Allow data.frame/categorical input for survival without intercept
@@ -194,7 +206,8 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
             fill = TRUE)
 
         # OPTIMIZATION FOR BETA: ONE GLMNET STEP
-        pen.weights = mean(exp(z %*% theta)) * exp(- z %*% theta)
+        # pen.weights = mean(exp(z %*% theta)) * exp(- z %*% theta)
+        pen.weights <- weight_fun(z, theta)
         fit <- glmnet::glmnet(x, y, family = family, standardize = FALSE,
                               alpha = alpha, lambda = lambda * mean(pen.weights),
                               penalty.factor = pen.weights)
