@@ -39,6 +39,10 @@
 #'  `"original"` corresponds to
 #'  
 #'  `function(z, theta) mean(exp(z %*% theta)) * exp(- z %*% theta)`
+#'@param theta `[NULL]` For development purposes only: If set to a matrix with
+#'  dimensions ncol(z) x 1, no theta optimization step will take place and
+#'  theta will be used for `weight_fun()` as is. In regular settings, this
+#'  is not advisable.
 #' @param t The initial step size for `theta` backtracking line search
 #' (default value is 1).
 #' @param a The factor by which step size is decreased in `theta`
@@ -80,6 +84,7 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
                     alpha = 1, standardize = TRUE, max_iter = 20, ave_mode = 1,
                     thresh_mode = 1, t = 1, a = 0.5, thresh = 1e-3,
                     weight_fun = "original",
+                    theta = NULL,
                     verbose = FALSE) {
     this.call <- match.call()
 
@@ -87,7 +92,10 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
         stop("alpha must be between 0 and 1 (inclusive)")
     }
 
-    if (weight_fun == "original") {
+    # If we allow weight_fun to be an actual function, we can't rely on == 
+    # for character comparison. Maybe pre-defining weight_funs and using
+    # switch() for selection might be simpler.
+    if (identical(weight_fun, "original")) {
       weight_fun <- function(z, theta) mean(exp(z %*% theta)) * exp(- z %*% theta)
     }
 
@@ -130,21 +138,26 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
     # fit elastic net; if lambda sequence not provided, use the glmnet default
     # come up with lambda values: use the lambda sequence from glmnet
     if (is.null(lambda)) {
-        glmfit <- glmnet::glmnet(x, y, alpha = alpha, family = family,
-                                 standardize = FALSE)
-        lambda <- glmfit$lambda
-    } else {
-        lambda <- as.double(rev(sort(lambda)))
-        glmfit <- glmnet::glmnet(x, y, alpha = alpha, family = family,
-                                 standardize = FALSE, lambda = lambda)
-    }
+     glmfit <- glmnet::glmnet(x, y,
+       alpha = alpha, family = family,
+       standardize = FALSE
+     )
+     lambda <- glmfit$lambda
+   } else {
+     # Ensure lambda values are sorted in accordance with glmnet
+     lambda <- as.double(rev(sort(lambda)))
+     glmfit <- glmnet::glmnet(x, y,
+       alpha = alpha, family = family,
+       standardize = FALSE, lambda = lambda
+     )
+   }
 
     # function for averaging objective
     # get_ave_obj <- ifelse(thresh_mode == 1, mean, median)
     # ifelse throws an error in interactive testing otherwise
     get_ave_obj <- switch(thresh_mode,
-        `1` = mean,
-        `2` = median
+      `1` = mean,
+      `2` = median
     )
 
     ave_fn_name <- ifelse(thresh_mode == 1, "Mean", "Median")
@@ -152,17 +165,33 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
     # initialize beta, a0 at elastic net solution, theta at 0
     beta <- matrix(glmfit$beta, nrow = p)
     a0 <- glmfit$a0
-    theta <- matrix(0, nrow = K, ncol = 1)
     iter <- 0    # no. of beta/theta minimizations
+    # browser()
+    if (!is.null(theta)) {
+      # If theta is fixed, we still need to step through the optimization
+      # machinery exactly once and selectively suppress optimization steps
+      # Since fixing theta is not intended originally, this is rather clunky.
+      # First, ensure we only iterate once
+      # iter <- max_iter - 1
+      max_iter <- iter + 1
+      
+      # Set flag for easier disabling of steps below
+      skip_theta_optim <- TRUE
+      
+      # check if provided theta is even valid
+      if (!is.matrix(theta)) theta <- as.matrix(theta) # in case of scalar input
+      stopifnot(identical(dim(theta), c(as.integer(K), 1L)))
+    } else {
+      # Otherwise theta is initialized with zeros normally
+      theta <- matrix(0, nrow = K, ncol = 1)
+      skip_theta_optim <- FALSE
+    }
 
     # store obj values across iterations (including original elastic net soln)
     obj_store <- matrix(NA, nrow = max_iter + 1, ncol = length(lambda))
-    # FIXME:
-    # 1) a0 is NULL in family = "cox" case, bc no b_0(?)
-    # 2) objective_fn shoddily cox'd
-
     obj_store[1, ] <- objective_fn(x, y, z, beta, a0, theta, lambda, alpha, family)
     prev_iter_m_obj_value <- get_ave_obj(obj_store[1, ])
+    
     if (verbose) cat(paste(ave_fn_name,
         "objective function value of elastic net solution:",
         format(round(prev_iter_m_obj_value, 3), nsmall = 3)),
@@ -186,25 +215,26 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
         obj_value <- nll_value + penalty_fn(z, beta, theta, lambda, alpha)
         m_obj_value <- get_ave_obj(obj_value)
 
-        while (TRUE) {
-            newtheta <- theta - t * ave_grad_theta
-
-            # compute new objective
-            new_obj_value <- nll_value + penalty_fn(z, beta, newtheta, lambda, alpha)
-            new_m_obj_value <- get_ave_obj(new_obj_value)
-
-            if (!is.finite(new_m_obj_value) || new_m_obj_value > m_obj_value) {
-                t <- a * t
-            } else {
-                theta <- newtheta
-                break
-            }
+        if (!skip_theta_optim) {
+          while (TRUE) {
+              newtheta <- theta - t * ave_grad_theta
+  
+              # compute new objective
+              new_obj_value <- nll_value + penalty_fn(z, beta, newtheta, lambda, alpha)
+              new_m_obj_value <- get_ave_obj(new_obj_value)
+  
+              if (!is.finite(new_m_obj_value) || new_m_obj_value > m_obj_value) {
+                  t <- a * t
+              } else {
+                  theta <- newtheta
+                  break
+              }
+          }
+          if (verbose) cat(paste(ave_fn_name,
+              "objective function value after theta minimization:",
+              format(round(new_m_obj_value, 3), nsmall = 3)),
+              fill = TRUE)
         }
-        if (verbose) cat(paste(ave_fn_name,
-            "objective function value after theta minimization:",
-            format(round(new_m_obj_value, 3), nsmall = 3)),
-            fill = TRUE)
-
         # OPTIMIZATION FOR BETA: ONE GLMNET STEP
         # pen.weights = mean(exp(z %*% theta)) * exp(- z %*% theta)
         pen.weights <- weight_fun(z, theta)
@@ -213,6 +243,9 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
                               penalty.factor = pen.weights)
         beta <- matrix(fit$beta, nrow = p)
         a0 <- fit$a0
+        
+        # If we fix theta, we break early here since we don't need the rest
+        if (skip_theta_optim) break
 
         # compute new objective and store it
         new_obj_value <- objective_fn(x, y, z, beta, a0, theta, lambda, alpha, family)
