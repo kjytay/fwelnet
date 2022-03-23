@@ -166,7 +166,7 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
     beta <- matrix(glmfit$beta, nrow = p)
     a0 <- glmfit$a0
     iter <- 0    # no. of beta/theta minimizations
-    # browser()
+
     if (!is.null(theta)) {
       # If theta is fixed, we still need to step through the optimization
       # machinery exactly once and selectively suppress optimization steps
