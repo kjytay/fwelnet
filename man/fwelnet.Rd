@@ -29,7 +29,7 @@ an observation vector.}
 
 \item{y}{Response variable. Quantitative for \code{family = "gaussian"}. For
 \code{family="binomial"}, should be a numeric vector consisting of 0s and 1s.
-For \code{famil = "cox"}, should be a \code{\link[survival:Surv]{survival::Surv}} object.}
+For \code{family = "cox"}, should be a \code{\link[survival:Surv]{survival::Surv}} object.}
 
 \item{z}{Feature of features matrix, with dimension \verb{nvars x nfeaturevars}.}
 
@@ -47,7 +47,7 @@ between 0 and 1 (inclusive). Default value is 1.}
 \item{standardize}{If \code{TRUE}, the columns of the input matrix are
 standardized before the algorithm is run. Default is \code{TRUE}.}
 
-\item{max_iter}{The number of iterations for the optimization. Default is 1.}
+\item{max_iter}{The number of iterations for the optimization.}
 
 \item{ave_mode}{If equal to 1 (default), the gradient descent direction for
 \code{theta} is the mean gradient across the lambda values. If equal to 2,

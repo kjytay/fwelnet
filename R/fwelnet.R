@@ -12,7 +12,7 @@
 #' an observation vector.
 #' @param y Response variable. Quantitative for `family = "gaussian"`. For
 #' `family="binomial"`, should be a numeric vector consisting of 0s and 1s.
-#' For `famil = "cox"`, should be a [`survival::Surv`] object.
+#' For `family = "cox"`, should be a [`survival::Surv`] object.
 #' @param z Feature of features matrix, with dimension `nvars x nfeaturevars`.
 #' @param lambda A user supplied `lambda` sequence. Typical usage is to
 #' have the program compute its own `lambda` sequence; supplying a value of
@@ -24,7 +24,7 @@
 #' between 0 and 1 (inclusive). Default value is 1.
 #' @param standardize If `TRUE`, the columns of the input matrix are
 #' standardized before the algorithm is run. Default is `TRUE`.
-#' @param max_iter The number of iterations for the optimization. Default is 1.
+#' @param max_iter The number of iterations for the optimization.
 #' @param ave_mode If equal to 1 (default), the gradient descent direction for
 #' `theta` is the mean gradient across the lambda values. If equal to 2,
 #' it is the component-wise median gradient across the lambda values.
@@ -167,6 +167,7 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
     a0 <- glmfit$a0
     iter <- 0    # no. of beta/theta minimizations
 
+    # MT debug:
     if (!is.null(theta)) {
       # If theta is fixed, we still need to step through the optimization
       # machinery exactly once and selectively suppress optimization steps
@@ -191,6 +192,12 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
     obj_store <- matrix(NA, nrow = max_iter + 1, ncol = length(lambda))
     obj_store[1, ] <- objective_fn(x, y, z, beta, a0, theta, lambda, alpha, family)
     prev_iter_m_obj_value <- get_ave_obj(obj_store[1, ])
+    
+    # MT debug:: theta is scalar in our case, store it in a matrix per iteration step
+    theta_store <- NULL
+    theta_store <- matrix(NA_real_, nrow = max_iter + 1, ncol = K)
+    theta_store[1, ] <- 0
+  
     
     if (verbose) cat(paste(ave_fn_name,
         "objective function value of elastic net solution:",
@@ -244,13 +251,18 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
         beta <- matrix(fit$beta, nrow = p)
         a0 <- fit$a0
         
-        # If we fix theta, we break early here since we don't need the rest
+        # MT debug: If we fix theta, we break early here since we don't need the rest
         if (skip_theta_optim) break
 
         # compute new objective and store it
         new_obj_value <- objective_fn(x, y, z, beta, a0, theta, lambda, alpha, family)
         new_m_obj_value <- get_ave_obj(new_obj_value)
         obj_store[iter + 1, ] <- new_obj_value
+        
+        # MT debug: Store theta if it's a scalar only
+        theta_store[iter + 1, ] <- t(theta)
+
+        
         if (verbose) cat(paste(ave_fn_name,
             "objective function value after beta minimization:",
             format(round(new_m_obj_value, 3), nsmall = 3)),
@@ -260,6 +272,11 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
         if ((prev_iter_m_obj_value - new_m_obj_value) /
             prev_iter_m_obj_value < thresh) {
             obj_store <- obj_store[1:(iter + 1), ]
+            
+            # MT debug: Trim theta if it's a scalar only
+            theta_store <- theta_store[1:(iter + 1), ]
+            
+            
             if (verbose) cat(paste(ave_fn_name,
                 "objective function value not decreased enough, stopping early\n"))
             break
@@ -278,7 +295,7 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
     nzero <- colSums(beta != 0)
 
     out <- list(beta = beta, theta = theta, a0 = a0, lambda = lambda, nzero = nzero,
-                family = family, call = this.call, obj = obj_store)
+                family = family, call = this.call, obj = obj_store, theta_store = theta_store)
     class(out) <- "fwelnet"
     return(out)
 }
