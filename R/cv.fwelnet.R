@@ -38,6 +38,7 @@
 #' omitted. Default is `FALSE`.
 #' @param verbose Print information as model is being fit? Default is FALSE.
 #' @param ... Other arguments that can be passed to `fwelnet`.
+#' @inheritParams fwelnet
 #'
 #' @return An object of class `"cv.fwelnet"`, which is a list with the
 #' ingredients of the cross-validation fit.
@@ -82,7 +83,7 @@
 #' @export
 cv.fwelnet <- function(x, y, z, family = c("gaussian", "binomial", "cox"), lambda = NULL,
                        type.measure = c("mse", "deviance", "class", "auc", "mae", "nll"),
-                       nfolds = 10, foldid = NULL, keep = FALSE, verbose = FALSE,
+                       nfolds = 10, foldid = NULL, keep = FALSE, verbose = FALSE, t = 1, a = 0.5,
                        ...) {
     this.call <- match.call()
 
@@ -120,7 +121,7 @@ cv.fwelnet <- function(x, y, z, family = c("gaussian", "binomial", "cox"), lambd
     }
 
     # get fwelnet fit for all of the data
-    fit0 <- fwelnet(x, y, z, lambda = lambda, family = family, ...)
+    fit0 <- fwelnet(x, y, z, lambda = lambda, family = family, t = t, a = a, ...)
     if (verbose) {
         cat("Initial fit done", fill = TRUE)
     }
@@ -136,7 +137,7 @@ cv.fwelnet <- function(x, y, z, family = c("gaussian", "binomial", "cox"), lambd
         xc <- x[!oo, , drop = FALSE]
         yy <- y[!oo]
         fits[[ii]] <- fwelnet(xc, yy, z, lambda = fit0$lambda, family = family,
-                               verbose = verbose, ...)
+                               verbose = verbose, t = t, a = a, ...)
     }
 
     # get predictions

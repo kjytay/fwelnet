@@ -12,6 +12,8 @@ fwelnet_mt_cox(
   z_method = c("original", "aligned"),
   alpha = 1,
   verbose = FALSE,
+  t = 1,
+  a = 0.5,
   ...
 )
 }
@@ -36,6 +38,12 @@ by \code{beta2} and \code{beta1} from the previous iteration step respectively.}
 \item{alpha}{\verb{[1]} Passed to \code{\link[=glmnet]{glmnet()}} and \code{\link[=fwelnet]{fwelnet()}}.}
 
 \item{verbose}{Display informative message on the state of the mt fit.}
+
+\item{t}{The initial step size for \code{theta} backtracking line search
+(default value is 1).}
+
+\item{a}{The factor by which step size is decreased in \code{theta}
+backtracking line search (default value is 0.5).}
 
 \item{...}{Passed to \code{\link[=fwelnet]{fwelnet()}}}
 }

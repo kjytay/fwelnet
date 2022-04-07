@@ -15,6 +15,8 @@ cv.fwelnet(
   foldid = NULL,
   keep = FALSE,
   verbose = FALSE,
+  t = 1,
+  a = 0.5,
   ...
 )
 }
@@ -56,6 +58,12 @@ means these fits are computed with this observation and the rest of its fold
 omitted. Default is \code{FALSE}.}
 
 \item{verbose}{Print information as model is being fit? Default is FALSE.}
+
+\item{t}{The initial step size for \code{theta} backtracking line search
+(default value is 1).}
+
+\item{a}{The factor by which step size is decreased in \code{theta}
+backtracking line search (default value is 0.5).}
 
 \item{...}{Other arguments that can be passed to \code{fwelnet}.}
 }
