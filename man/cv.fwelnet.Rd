@@ -17,6 +17,7 @@ cv.fwelnet(
   verbose = FALSE,
   t = 1,
   a = 0.5,
+  thresh = 0.001,
   ...
 )
 }
@@ -64,6 +65,9 @@ omitted. Default is \code{FALSE}.}
 
 \item{a}{The factor by which step size is decreased in \code{theta}
 backtracking line search (default value is 0.5).}
+
+\item{thresh}{If the mean/median objective function does not decrease by at
+least this factor, we terminate the optimization early. Default is 1e-4.}
 
 \item{...}{Other arguments that can be passed to \code{fwelnet}.}
 }

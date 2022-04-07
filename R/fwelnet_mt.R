@@ -30,7 +30,9 @@ fwelnet_mt_cox <- function(data, causes = 1:2,
                            z_scale = 1,
                            z_method = c("original", "aligned"),
                            alpha = 1, # pass to glmnet and fwelnet
-                           verbose = FALSE, t = 1, a = 0.5, ...) {
+                           verbose = FALSE, t = 1, a = 0.5, 
+                           thresh = 1e-3,
+                           ...) {
 
   z_method <- match.arg(z_method)
 
@@ -102,7 +104,7 @@ fwelnet_mt_cox <- function(data, causes = 1:2,
     z2 <- z_scale * abs(beta1[, k, drop = FALSE])
 
     # Get betas from fwelnet fit, requires finding lambda.min via cv first
-    fw2 <- cv.fwelnet(X, y2, z2, family = "cox", alpha = alpha, t = t, a = a, ...)
+    fw2 <- cv.fwelnet(X, y2, z2, family = "cox", alpha = alpha, t = t, a = a, thresh = thresh, ...)
     beta2[, k + 1] <- fw2$glmfit$beta[, which(fw2$lambda == fw2$lambda.min)]
 
     # Alg step 2b)
@@ -112,7 +114,7 @@ fwelnet_mt_cox <- function(data, causes = 1:2,
       stop("z_method ", z_method, " not known")
     )
 
-    fw1 <- cv.fwelnet(X, y1, z1, family = "cox", alpha = alpha, t = t, a = a, ...)
+    fw1 <- cv.fwelnet(X, y1, z1, family = "cox", alpha = alpha, t = t, a = a, thresh = thresh, ...)
     beta1[, k + 1] <- fw1$glmfit$beta[, which(fw1$lambda == fw1$lambda.min)]
 
     # Check beta differences, break if differences are 0

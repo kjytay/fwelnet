@@ -83,7 +83,8 @@
 #' @export
 cv.fwelnet <- function(x, y, z, family = c("gaussian", "binomial", "cox"), lambda = NULL,
                        type.measure = c("mse", "deviance", "class", "auc", "mae", "nll"),
-                       nfolds = 10, foldid = NULL, keep = FALSE, verbose = FALSE, t = 1, a = 0.5,
+                       nfolds = 10, foldid = NULL, keep = FALSE, verbose = FALSE, 
+                       t = 1, a = 0.5, thresh = 1e-3,
                        ...) {
     this.call <- match.call()
 
@@ -121,7 +122,7 @@ cv.fwelnet <- function(x, y, z, family = c("gaussian", "binomial", "cox"), lambd
     }
 
     # get fwelnet fit for all of the data
-    fit0 <- fwelnet(x, y, z, lambda = lambda, family = family, t = t, a = a, ...)
+    fit0 <- fwelnet(x, y, z, lambda = lambda, family = family, t = t, a = a, thresh = thresh, ...)
     if (verbose) {
         cat("Initial fit done", fill = TRUE)
     }
@@ -137,7 +138,7 @@ cv.fwelnet <- function(x, y, z, family = c("gaussian", "binomial", "cox"), lambd
         xc <- x[!oo, , drop = FALSE]
         yy <- y[!oo]
         fits[[ii]] <- fwelnet(xc, yy, z, lambda = fit0$lambda, family = family,
-                               verbose = verbose, t = t, a = a, ...)
+                               verbose = verbose, t = t, a = a, thresh = thresh, ...)
     }
 
     # get predictions
