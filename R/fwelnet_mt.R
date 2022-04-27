@@ -10,7 +10,6 @@
 #' if no change in per-cause beta vector between iterations is detected.
 #' If set to `0`, no `fwelnet` iteration will be performed and the returned
 #' coefficients will be the result of fitting a cause-specific `glmnet`.
-#' @param z_scale `[1]` Scalar for `z = abs(beta)` step.
 #' @param z_method `["original"]` Either assign `z1` to be informed by `beta2`
 #' of the current iteration (default behavior, as described in Algorithm 2
 #' in Tay et. al. 2020), or `"aligned"` to have both `z1` and `z2` be informed
@@ -27,7 +26,6 @@
 #'
 fwelnet_mt_cox <- function(data, causes = 1:2,
                            mt_max_iter = 5,
-                           z_scale = 1,
                            z_method = c("original", "aligned"),
                            alpha = 1, # pass to glmnet and fwelnet
                            verbose = FALSE, t = 1, a = 0.5, 
@@ -101,7 +99,7 @@ fwelnet_mt_cox <- function(data, causes = 1:2,
     if (verbose) message("k = ", k)
 
     # Alg step 2a)
-    z2 <- z_scale * abs(beta1[, k, drop = FALSE])
+    z2 <- abs(beta1[, k, drop = FALSE])
 
     # Get betas from fwelnet fit, requires finding lambda.min via cv first
     fw2 <- cv.fwelnet(X, y2, z2, family = "cox", alpha = alpha, t = t, a = a, thresh = thresh, ...)
@@ -109,8 +107,8 @@ fwelnet_mt_cox <- function(data, causes = 1:2,
 
     # Alg step 2b)
     z1 <- switch (z_method,
-      "original" = z_scale * abs(beta2[, k + 1, drop = FALSE]),
-      "aligned"  = z_scale * abs(beta2[, k, drop = FALSE]),
+      "original" = abs(beta2[, k + 1, drop = FALSE]),
+      "aligned"  = abs(beta2[, k, drop = FALSE]),
       stop("z_method ", z_method, " not known")
     )
 
@@ -154,10 +152,6 @@ fwelnet_mt_cox <- function(data, causes = 1:2,
     # Check mt iterations later to assess reasonable values
     mt_iter = k - 1, # Adjust since k can't start at 0
     mt_max_iter = mt_max_iter,
-    converged = ((k - 1) < mt_max_iter),
-    # Values to experiment with
-    alpha = alpha,
-    z_scale = z_scale,
-    z_method = z_method
+    converged = ((k - 1) < mt_max_iter)
   )
 }

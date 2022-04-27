@@ -8,7 +8,6 @@ fwelnet_mt_cox(
   data,
   causes = 1:2,
   mt_max_iter = 5,
-  z_scale = 1,
   z_method = c("original", "aligned"),
   alpha = 1,
   verbose = FALSE,
@@ -28,8 +27,6 @@ with outcome variables assumed to be named \code{"time"} and \code{"status"}.}
 if no change in per-cause beta vector between iterations is detected.
 If set to \code{0}, no \code{fwelnet} iteration will be performed and the returned
 coefficients will be the result of fitting a cause-specific \code{glmnet}.}
-
-\item{z_scale}{\verb{[1]} Scalar for \code{z = abs(beta)} step.}
 
 \item{z_method}{\verb{["original"]} Either assign \code{z1} to be informed by \code{beta2}
 of the current iteration (default behavior, as described in Algorithm 2
