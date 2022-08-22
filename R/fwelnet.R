@@ -88,9 +88,8 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
                     verbose = FALSE) {
     this.call <- match.call()
 
-    if (alpha > 1 || alpha < 0) {
-        stop("alpha must be between 0 and 1 (inclusive)")
-    }
+    assert_number(alpha, lower = 1, upper = 1)
+    assert_choice(family, choices = c("gaussian", "binomial", "cox"))
 
     # If we allow weight_fun to be an actual function, we can't rely on == 
     # for character comparison. Maybe pre-defining weight_funs and using

@@ -14,6 +14,7 @@ fwelnet_mt_cox(
   t = 1,
   a = 0.5,
   thresh = 0.001,
+  include_mt_beta_history = FALSE,
   ...
 )
 }
@@ -21,7 +22,7 @@ fwelnet_mt_cox(
 \item{data}{A data.frame or matrix holding predictors and outcome,
 with outcome variables assumed to be named \code{"time"} and \code{"status"}.}
 
-\item{causes}{Integer vector indicating causes, e.g. \code{1:2} for two causes.}
+\item{causes}{(Unused for now) Integer vector indicating causes, e.g. \code{1:2} for two causes.}
 
 \item{mt_max_iter}{\verb{[5]} number of mt-iterations to perform. Will break early
 if no change in per-cause beta vector between iterations is detected.
@@ -45,6 +46,11 @@ backtracking line search (default value is 0.5).}
 
 \item{thresh}{If the mean/median objective function does not decrease by at
 least this factor, we terminate the optimization early. Default is 1e-4.}
+
+\item{include_mt_beta_history}{\verb{[FALSE]} If \code{TRUE}, output \code{list} includes
+components \code{beta1} and \code{beta2}, matrices of dimensions \code{p} x \code{mt_iter_max + 1}
+containing coefficient vectors for causes 1 and 2 for each multi-task iteration,
+with the first column corresponding to the original \code{cv.glmnet} solution.}
 
 \item{...}{Passed to \code{\link[=fwelnet]{fwelnet()}}}
 }

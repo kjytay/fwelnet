@@ -5,7 +5,7 @@
 #'
 #' @param data A data.frame or matrix holding predictors and outcome,
 #' with outcome variables assumed to be named `"time"` and `"status"`.
-#' @param causes Integer vector indicating causes, e.g. `1:2` for two causes.
+#' @param causes (Unused for now) Integer vector indicating causes, e.g. `1:2` for two causes.
 #' @param mt_max_iter `[5]` number of mt-iterations to perform. Will break early
 #' if no change in per-cause beta vector between iterations is detected.
 #' If set to `0`, no `fwelnet` iteration will be performed and the returned
@@ -16,6 +16,10 @@
 #' by `beta2` and `beta1` from the previous iteration step respectively.
 #' @param alpha `[1]` Passed to [`glmnet()`] and [`fwelnet()`].
 #' @param verbose Display informative message on the state of the mt fit.
+#' @param include_mt_beta_history `[FALSE]` If `TRUE`, output `list` includes
+#'   components `beta1` and `beta2`, matrices of dimensions `p` x `mt_iter_max + 1`
+#'   containing coefficient vectors for causes 1 and 2 for each multi-task iteration,
+#'   with the first column corresponding to the original `cv.glmnet` solution.
 #' @param ... Passed to [`fwelnet()`]
 #' @inheritParams fwelnet
 #'
@@ -24,15 +28,26 @@
 #' @importFrom glmnet cv.glmnet
 #' @return A `list` containing per-cause beta matrices for each iteration step
 #'
-fwelnet_mt_cox <- function(data, causes = 1:2,
+fwelnet_mt_cox <- function(data, 
+                           causes = 1:2, # Unused for now
                            mt_max_iter = 5,
                            z_method = c("original", "aligned"),
                            alpha = 1, # pass to glmnet and fwelnet
                            verbose = FALSE, t = 1, a = 0.5, 
                            thresh = 1e-3,
+                           include_mt_beta_history = FALSE,
                            ...) {
-
-  z_method <- match.arg(z_method)
+  
+  assert_integer(causes, min.len = 2)
+  assert_int(mt_max_iter, lower = 1)
+  assert_choice(z_method, choices = c("original", "aligned"))
+  assert_numeric(alpha, lower = 0, upper = 1, len = 1)
+  assert_logical(verbose, len = 1)
+  # FIXME: Rename t variable to avoid clash with base::t
+  assert_numeric(t, any.missing = FALSE, len = 1)
+  assert_numeric(alpha, lower = 0, upper = 1, len = 1)
+  assert_numeric(thresh, lower = 0, len = 1)
+  assert_logical(include_mt_beta_history, len = 1)
 
   # data prep ---------------------------------------------------------------
   rowidx <- list()
@@ -142,16 +157,24 @@ fwelnet_mt_cox <- function(data, causes = 1:2,
   }
 
   # Returns betas and anything else that might be interesting
-  list(
-    # History of betas
-    beta1 = beta1,
-    beta2 = beta2,
+  ret <- list(
     # final fwelnet fit objects for later predictions
     fwfit1 = fw1,
     fwfit2 = fw2,
+    # 0-th step glmnet solutions
+    glmfit1 = gl1,
+    glmfit2 = gl2,
     # Check mt iterations later to assess reasonable values
     mt_iter = k - 1, # Adjust since k can't start at 0
     mt_max_iter = mt_max_iter,
     converged = ((k - 1) < mt_max_iter)
   )
+  
+  if (include_mt_beta_history) {
+    #  History of betas
+    ret$beta1 <- beta1
+    ret$beta2 <- beta2
+  }
+  
+  ret
 }
