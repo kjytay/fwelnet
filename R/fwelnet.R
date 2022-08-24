@@ -89,7 +89,7 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
     this.call <- match.call()
 
     assert_number(alpha, lower = 1, upper = 1)
-    assert_choice(family, choices = c("gaussian", "binomial", "cox"))
+    
 
     # If we allow weight_fun to be an actual function, we can't rely on == 
     # for character comparison. Maybe pre-defining weight_funs and using
@@ -114,6 +114,7 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
       # Need to pass survival outcome via Surv or as matrix, this breaks it
       y <- as.vector(y)
     }
+
     family <- match.arg(family)
     if (family == "binomial" && any(!(unique(y) %in% c(0, 1)))) {
         stop("If family is binomial, y can only contain 0s and 1s")
