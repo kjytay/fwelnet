@@ -31,7 +31,7 @@
 fwelnet_mt_cox <- function(data, 
                            causes = 1:2, # Unused for now
                            mt_max_iter = 5,
-                           z_method = c("original", "aligned"),
+                           z_method = "original",
                            alpha = 1, # pass to glmnet and fwelnet
                            verbose = FALSE, t = 1, a = 0.5, 
                            thresh = 1e-3,
