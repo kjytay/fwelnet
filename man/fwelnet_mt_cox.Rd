@@ -8,12 +8,14 @@ fwelnet_mt_cox(
   data,
   causes = 1:2,
   mt_max_iter = 5,
-  z_method = c("original", "aligned"),
+  z_method = "original",
+  stratify_by_status = FALSE,
   alpha = 1,
   verbose = FALSE,
   t = 1,
   a = 0.5,
   thresh = 0.001,
+  nfolds = 10,
   include_mt_beta_history = FALSE,
   ...
 )
@@ -29,12 +31,16 @@ if no change in per-cause beta vector between iterations is detected.
 If set to \code{0}, no \code{fwelnet} iteration will be performed and the returned
 coefficients will be the result of fitting a cause-specific \code{glmnet}.}
 
-\item{z_method}{\verb{["original"]} Either assign \code{z1} to be informed by \code{beta2}
+\item{z_method}{\code{("original")} Either assign \code{z1} to be informed by \code{beta2}
 of the current iteration (default behavior, as described in Algorithm 2
 in Tay et. al. 2020), or \code{"aligned"} to have both \code{z1} and \code{z2} be informed
 by \code{beta2} and \code{beta1} from the previous iteration step respectively.}
 
-\item{alpha}{\verb{[1]} Passed to \code{\link[=glmnet]{glmnet()}} and \code{\link[=fwelnet]{fwelnet()}}.}
+\item{stratify_by_status}{(\code{FALSE}) If \code{TRUE}, the internal cross-validation folds are sampled by the \code{status}
+variable, leading to folds with roughly equal proportions of events as in \code{data}.
+This is helpful in cases where many censored observations in folds lead to errors during model fits.}
+
+\item{alpha}{\code{(1)} Passed to \code{\link[=glmnet]{glmnet()}} and \code{\link[=fwelnet]{fwelnet()}}.}
 
 \item{verbose}{Display informative message on the state of the mt fit.}
 
@@ -46,6 +52,8 @@ backtracking line search (default value is 0.5).}
 
 \item{thresh}{If the mean/median objective function does not decrease by at
 least this factor, we terminate the optimization early. Default is 1e-4.}
+
+\item{nfolds}{(\code{10}) Passed to \code{\link{cv.fwelnet}} and \code{\link{cv.glmnet}} respectively.}
 
 \item{include_mt_beta_history}{\verb{[FALSE]} If \code{TRUE}, output \code{list} includes
 components \code{beta1} and \code{beta2}, matrices of dimensions \code{p} x \code{mt_iter_max + 1}

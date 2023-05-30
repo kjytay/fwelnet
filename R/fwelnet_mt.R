@@ -10,12 +10,16 @@
 #' if no change in per-cause beta vector between iterations is detected.
 #' If set to `0`, no `fwelnet` iteration will be performed and the returned
 #' coefficients will be the result of fitting a cause-specific `glmnet`.
-#' @param z_method `["original"]` Either assign `z1` to be informed by `beta2`
+#' @param z_method `("original")` Either assign `z1` to be informed by `beta2`
 #' of the current iteration (default behavior, as described in Algorithm 2
 #' in Tay et. al. 2020), or `"aligned"` to have both `z1` and `z2` be informed
 #' by `beta2` and `beta1` from the previous iteration step respectively.
-#' @param alpha `[1]` Passed to [`glmnet()`] and [`fwelnet()`].
+#' @param alpha `(1)` Passed to [`glmnet()`] and [`fwelnet()`].
+#' @param stratify_by_status (`FALSE`) If `TRUE`, the internal cross-validation folds are sampled by the `status`
+#'  variable, leading to folds with roughly equal proportions of events as in `data`.  
+#'  This is helpful in cases where many censored observations in folds lead to errors during model fits.
 #' @param verbose Display informative message on the state of the mt fit.
+#' @param nfolds (`10`) Passed to [`cv.fwelnet`] and [`cv.glmnet`] respectively.
 #' @param include_mt_beta_history `[FALSE]` If `TRUE`, output `list` includes
 #'   components `beta1` and `beta2`, matrices of dimensions `p` x `mt_iter_max + 1`
 #'   containing coefficient vectors for causes 1 and 2 for each multi-task iteration,
@@ -32,9 +36,11 @@ fwelnet_mt_cox <- function(data,
                            causes = 1:2, # Unused for now
                            mt_max_iter = 5,
                            z_method = "original",
+                           stratify_by_status = FALSE,
                            alpha = 1, # pass to glmnet and fwelnet
                            verbose = FALSE, t = 1, a = 0.5, 
                            thresh = 1e-3,
+                           nfolds = 10,
                            include_mt_beta_history = FALSE,
                            ...) {
   
@@ -85,13 +91,26 @@ fwelnet_mt_cox <- function(data,
   # time is shared between causes
   y1 <- survival::Surv(data$time, event = status_c1)
   y2 <- survival::Surv(data$time, event = status_c2)
+  
+  # Stratify by status, generating per-observation fold IDs and passing those to initial
+  # cv.glmnet and cv.fwelnet later on
+  y1foldids <- NULL
+  y2foldids <- NULL
+  
+  if (stratify_by_status) {
+    y1df <- data.frame(status = status_c1)
+    y2df <- data.frame(status = status_c2)
+    
+    y1foldids <- stratified_cv_folds(y1df, nfolds = nfolds)[["fold"]]
+    y2foldids <- stratified_cv_folds(y2df, nfolds = nfolds)[["fold"]]
+  }
 
   # fwelnet multi-task: Algorithm 2,  p. 13 ---------------------------------
 
   # Alg step 1) Initialize b1_0, b2_0 at lambda.min glmnet solution
   # for y_1, y_2 respectively
-  gl1 <- glmnet::cv.glmnet(X, y1, family = "cox", alpha = alpha)
-  gl2 <- glmnet::cv.glmnet(X, y2, family = "cox", alpha = alpha)
+  gl1 <- glmnet::cv.glmnet(X, y1, family = "cox", alpha = alpha, foldid = y1foldids)
+  gl2 <- glmnet::cv.glmnet(X, y2, family = "cox", alpha = alpha, foldid = y2foldids)
 
   b1_0 <- gl1$glmnet.fit$beta[, which(gl1$lambda == gl1$lambda.min)]
   b2_0 <- gl2$glmnet.fit$beta[, which(gl2$lambda == gl2$lambda.min)]
@@ -112,12 +131,19 @@ fwelnet_mt_cox <- function(data,
   while (k < mt_max_iter + 1) {
 
     if (verbose) message("k = ", k)
+    
+    # Stratify by status, generating per-observation fold IDs and passing those cv.fwelnet fits
+    # using different fold assignments for each iteration, maybe should assign folds once initially and reuse here?
+    if (stratify_by_status) {
+      y1foldids <- stratified_cv_folds(y1df, nfolds = nfolds)[["fold"]]
+      y2foldids <- stratified_cv_folds(y2df, nfolds = nfolds)[["fold"]]
+    }
 
     # Alg step 2a)
     z2 <- abs(beta1[, k, drop = FALSE])
 
     # Get betas from fwelnet fit, requires finding lambda.min via cv first
-    fw2 <- cv.fwelnet(X, y2, z2, family = "cox", alpha = alpha, t = t, a = a, thresh = thresh, ...)
+    fw2 <- cv.fwelnet(X, y2, z2, family = "cox", alpha = alpha, t = t, a = a, thresh = thresh, foldid = y2foldids, ...)
     beta2[, k + 1] <- fw2$glmfit$beta[, which(fw2$lambda == fw2$lambda.min)]
 
     # Alg step 2b)
@@ -127,7 +153,7 @@ fwelnet_mt_cox <- function(data,
       stop("z_method ", z_method, " not known")
     )
 
-    fw1 <- cv.fwelnet(X, y1, z1, family = "cox", alpha = alpha, t = t, a = a, thresh = thresh, ...)
+    fw1 <- cv.fwelnet(X, y1, z1, family = "cox", alpha = alpha, t = t, a = a, thresh = thresh, foldid = y1foldids, ...)
     beta1[, k + 1] <- fw1$glmfit$beta[, which(fw1$lambda == fw1$lambda.min)]
 
     # Check beta differences, break if differences are 0
