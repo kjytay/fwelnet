@@ -1,3 +1,4 @@
+#' @aliases fwelnet-package
 #' @keywords internal
 "_PACKAGE"
 

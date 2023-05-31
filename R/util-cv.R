@@ -44,8 +44,10 @@ stratified_cv_folds <- function(xdf, nfolds = 10L) {
     }
   }
   
-  xdf[, fold := shuffle(seq_along0(row_id) %% as.integer(nfolds) + 1L), by = status]
+  xdf[, fold := shuffle(seq_along0(row_id) %% as.integer(nfolds) + 1L), by = "status"]
   if (cleanup) xdf[, row_id := NULL]
   as.data.frame(xdf[, c("fold", "status")])
   
 }
+
+globalVariables(c(".I", "row_id", "fold"))
