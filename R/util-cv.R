@@ -27,7 +27,6 @@ stratified_cv_folds <- function(xdf, nfolds = 10L) {
   
   if (!("row_id" %in% names(xdf))) {
     xdf[, row_id := .I]
-    cleanup <- TRUE
   }
   
   # Stratified sampling with DT and helpers ripped straight from mlr3
@@ -45,9 +44,7 @@ stratified_cv_folds <- function(xdf, nfolds = 10L) {
   }
   
   xdf[, fold := shuffle(seq_along0(row_id) %% as.integer(nfolds) + 1L), by = "status"]
-  if (cleanup) xdf[, row_id := NULL]
-  as.data.frame(xdf[, c("fold", "status")])
-  
+  as.data.frame(xdf[, c("row_id", "fold", "status")])
 }
 
 globalVariables(c(".I", "row_id", "fold"))
