@@ -46,6 +46,7 @@ fwelnet_mt_cox <- function(data,
   
   # Convert to data.frame just in case it's a data.table
   data <- as.data.frame(data)
+  assert_data_frame(data, any.missing = FALSE)
   assert_integer(causes, min.len = 2)
   assert_int(mt_max_iter, lower = 1)
   assert_choice(z_method, choices = c("original", "aligned"))
