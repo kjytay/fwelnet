@@ -237,11 +237,6 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
                   break
               }
           }
-          
-          if (any(theta < 0)) {
-            warning("theta optimization led to value < 0")
-          }
-          
           if (verbose) cat(paste(ave_fn_name,
               "objective function value after theta minimization:",
               format(round(new_m_obj_value, 3), nsmall = 3)),
