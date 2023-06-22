@@ -1,7 +1,7 @@
 Type: Package
 Package: fwelnet
 Title: Feature-Weighted Elastic Net
-Version: 0.1.0.9001
+Version: 0.1.0.9002
 Author: Kenneth Tay, Robert Tibshirani
 Maintainer: Kenneth Tay <kjytay@stanford.edu>
 Description: A method for fitting the entire regularization path of the

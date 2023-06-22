@@ -90,7 +90,12 @@ fwelnet_mt_cox <- function(data,
   # Predictor matrix shared for all causes
   X <- data[, !(names(data) %in% c("time", "status"))]
   # Treatment-encode factors, ensure numeric design matrix without intercept
-  X <- model.matrix(~ . -1, X)
+  #X <- model.matrix(~ . -1, X)
+  # Using formula with -1 drops intercept but then creates two variables for binary factors, not great
+  X <- model.matrix(~ ., X)
+  # Dropping intercept also drops attributes, not sure of this is a problem
+  X <- X[, -1] 
+  
   # time is shared between causes
   y1 <- survival::Surv(data$time, event = status_c1)
   y2 <- survival::Surv(data$time, event = status_c2)
@@ -193,6 +198,8 @@ fwelnet_mt_cox <- function(data,
     # 0-th step glmnet solutions
     glmfit1 = gl1,
     glmfit2 = gl2,
+    # model matrix
+    x = X,
     # Check mt iterations later to assess reasonable values
     mt_iter = k - 1, # Adjust since k can't start at 0
     mt_max_iter = mt_max_iter,
