@@ -12,3 +12,20 @@ coef.fwelnet <- function(object, ...) {
 
     return(out)
 }
+
+#' @export
+coef.cooper <- function(object, event = 1, s = "lambda.min", ...) {
+  
+  fwfit_which <- paste0("fwfit", event)
+  
+  if (s == "lambda.min") {
+    s <- which(object[[fwfit_which]]$glmfit$lambda == object[[fwfit_which]]$lambda.min)
+  }
+  
+  setNames(
+    object = object[[fwfit_which]]$glmfit$beta[, s],
+    nm = colnames(cooperfit$x)
+  )
+}
+
+
