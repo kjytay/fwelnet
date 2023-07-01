@@ -90,7 +90,6 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
 
     assert_number(alpha, lower = 1, upper = 1)
     
-
     # If we allow weight_fun to be an actual function, we can't rely on == 
     # for character comparison. Maybe pre-defining weight_funs and using
     # switch() for selection might be simpler.
@@ -102,11 +101,11 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
     # This is problematic though since it changes the number of columns in X
     # and z has to be pre-specified based on the "effective" ncol(x)
     if (is.data.frame(x)) {
+      x <- model.matrix(~ ., data = x)
+      
       if (inherits(y, "Surv")) {
-        x <- model.matrix(~ . -1, x)
-      } else {
-        x <- model.matrix(~ ., x)
-      }
+        x <- x[, -1, drop = FALSE]
+      } 
     }
 
     n <- nrow(x); p <- ncol(x); K <- ncol(z)
@@ -118,6 +117,10 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
     family <- match.arg(family)
     if (family == "binomial" && any(!(unique(y) %in% c(0, 1)))) {
         stop("If family is binomial, y can only contain 0s and 1s")
+    }
+    
+    if (family != "cox" & inherits(y, "Surv")) {
+      stop("'y' of type 'Surv' only supported for family = 'cox'")
     }
 
     # center y and columns of x
@@ -294,8 +297,13 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
     # count no. of non-zero coefficients for each model
     nzero <- colSums(beta != 0)
 
-    out <- list(beta = beta, theta = theta, a0 = a0, lambda = lambda, nzero = nzero,
-                family = family, call = this.call, obj = obj_store, theta_store = theta_store)
+    out <- list(
+      beta = beta, theta = theta, a0 = a0, lambda = lambda, 
+      nzero = nzero,
+      family = family, call = this.call, 
+      obj = obj_store, theta_store = theta_store,
+      glmfit = fit
+    )
     class(out) <- "fwelnet"
     return(out)
 }
