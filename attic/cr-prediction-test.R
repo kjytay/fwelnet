@@ -124,10 +124,8 @@ setnames(basehaz_rr, new = c("time", "hazard_rr", "cumhazard_rr"))
 cumhazards <- merge(basehaz_rr, basehaz_survival, by = "time")
 
 # Calculate baseline hazard via survfit (what basehaz does)
-newdata_zero <- matrix(0, ncol = 14, nrow = 1) |>
-  as.data.frame() |>
-  setNames(paste0("x", 0:13)) |>
-  mutate(x0 = factor(-1))
+sim1_x <- model.matrix(~ ., data = sim1[, !(names(sim1) %in% c("time", "status"))])[, -1, drop = FALSE]
+newdata_zero <- sim1_x[1, ] * 0
 
 basehaz_survfit0 <- survfit(coxph_c1, newdata = newdata_zero)
 
@@ -209,10 +207,44 @@ cooperfit <- fwelnet_mt_cox(
 
 cooperfit$fwfit1$glmfit$beta[, which(cooperfit$fwfit1$glmfit$lambda == cooperfit$fwfit1$lambda.min)]
 cooperfit$beta1[, ncol(cooperfit$beta1)]
+coef(cooperfit, event = 1)
 
 # getting linear predictor (type = "link" is default)
 predict(cooperfit$fwfit1, xnew = sim1[,1:14], s = "lambda.min", type = "link")
 
+
+cooperfit$basehazards[[1]]
+
+
+debugonce(glmnet:::survfit.coxnet)
+debugonce(glmnet:::mycoxph)
+
+# Regular fwelnet -------------------------------------------------------------------------------------------------
+
+coxph_c1 <- survival::coxph(Surv(time, status) ~ ., data = sim1_c1, x = TRUE)
+
+fwfit <- cv.fwelnet(
+  x = sim1_c1[, !(names(sim1_c1) %in% c("time", "status"))], 
+  y = Surv(sim1_c1$time, sim1_c1$status), 
+  z = matrix(1, ncol(sim1_c1[, !(names(sim1_c1) %in% c("time", "status"))]), ncol = 1),
+  family = "cox", standardize = FALSE
+)
+
+all.equal(fwfit$beta[1, ], fwfit$glmfit$beta[1, ], check.attributes = FALSE)
+
+# cv case
+all.equal(fwfit$glmfit$glmfit$beta[1,], fwfit$glmfit$beta[1,], check.attributes = FALSE)
+
+fwfit$lambda.min
+fwfit$glmfit$lambda
+
+which(fwfit$glmfit$lambda == fwfit$lambda.min)
+
+fwfit$glmfit$beta[, 28]
+fwfit$glmfit$glmfit$beta[, 28]
+
+names(fwfit$glmfit)
+names(fwfit$glmfit$glmfit)
 
 # pammtools -------------------------------------------------------------------------------------------------------
 library(pammtools)
