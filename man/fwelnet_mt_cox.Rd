@@ -11,6 +11,7 @@ fwelnet_mt_cox(
   z_method = "original",
   stratify_by_status = FALSE,
   alpha = 1,
+  standardize = TRUE,
   verbose = FALSE,
   t = 1,
   a = 0.5,
@@ -42,6 +43,8 @@ This is helpful in cases where many censored observations in folds lead to error
 
 \item{alpha}{\code{(1)} Passed to \code{\link[=glmnet]{glmnet()}} and \code{\link[=fwelnet]{fwelnet()}}.}
 
+\item{standardize}{Passed to \code{\link{cv.fwelnet}} and \code{\link{cv.glmnet}} respectively.}
+
 \item{verbose}{Display informative message on the state of the mt fit.}
 
 \item{t}{The initial step size for \code{theta} backtracking line search
@@ -63,7 +66,8 @@ with the first column corresponding to the original \code{cv.glmnet} solution.}
 \item{...}{Passed to \code{\link[=fwelnet]{fwelnet()}}}
 }
 \value{
-A \code{list} containing per-cause beta matrices for each iteration step
+An object of class \code{cooper} with \code{cv.fwelnet} objects of the final iteration.
+If \code{include_mt_beta_history = TRUE}, contains per-cause beta matrices for each iteration step.
 }
 \description{
 Survival-focused implementation of the fwelnet-multitask algorithm described
