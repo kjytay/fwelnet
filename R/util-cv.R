@@ -13,7 +13,7 @@
 #'   status = c(rep(0, 20), rep(1, 18), rep(2, 12)) 
 #' )
 #' 
-#' resdf <- stratified_cv_folds(xdf)
+#' resdf <- stratified_cv_folds(xdf, nfolds = 10)
 #' table(resdf$status, resdf$fold)
 stratified_cv_folds <- function(xdf, nfolds = 10L) {
   if (!checkmate::test_data_table(xdf)) xdf <- data.table::as.data.table(xdf)

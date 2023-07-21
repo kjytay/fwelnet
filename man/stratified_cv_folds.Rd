@@ -23,6 +23,6 @@ xdf <- data.frame(
   status = c(rep(0, 20), rep(1, 18), rep(2, 12)) 
 )
 
-resdf <- stratified_cv_folds(xdf)
+resdf <- stratified_cv_folds(xdf, nfolds = 10)
 table(resdf$status, resdf$fold)
 }
