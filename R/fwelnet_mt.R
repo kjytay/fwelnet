@@ -223,13 +223,17 @@ fwelnet_mt_cox <- function(data,
   # Returns betas and anything else that might be interesting
   ret <- list(
     # final fwelnet fit objects for later predictions
-    fwfit1 = fw_cv_list[[1]],
-    fwfit2 = fw_cv_list[[2]],
+    fwfit1 = fw_cv_list[[1]], # To be removed
+    fwfit2 = fw_cv_list[[2]], # To be removed
     # 0-th step glmnet solutions
-    glmfit1 = gl1,
-    glmfit2 = gl2,
+    glmfit1 = gl1, # To be removed
+    glmfit2 = gl2, # To be removed
+    # Collected versions of same objects
+    initial_fits = list(gl1, gl2),
+    fwelfits = fw_cv_list,
     # model matrix
     x = X, y = y_list,
+    predictors = setdiff(colnames(data), c("time", "status")),
     # Baseline hazards
     basehazards = basehazards,
     # Check mt iterations later to assess reasonable values
