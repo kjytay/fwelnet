@@ -7,6 +7,7 @@
 #' @param times Event times to evaluate at.
 #' @param use_initial_fit (`FALSE`) If `TRUE`, uses the initial `glmnet` fit of the cooper algorithm.
 #' @param reference **NYI** Either `"zero"` or `"sample"`.
+#' @param ... Unused.
 #'
 #' @return For `type = "risk"`, a data.frame with columns "id", "event", "lp", "eXb".
 #' For `type = "absrisk"`, a data.frame with columns "id" "event" "horizon" "absolute_risk".
@@ -34,7 +35,8 @@ predict.cooper <- function(
     event = 1,
     times = NULL,
     use_initial_fit = FALSE,
-    reference = c("zero", "sample") # NYI
+    reference = c("zero", "sample"), # NYI
+    ...
 ) {
   
   type <- match.arg(type)
@@ -85,8 +87,10 @@ predict.cooper <- function(
 # which takes care of dummy encoding etc. Note the intercept is dropped explicitly rather than removed
 # via formula to ensure correct recoding.
 # Also ensures only predictors used during model fit are in model matrix
+#' @keywords internal
+#' @importFrom stats reformulate
 x_modelmat <- function(object, xnew) {
-  model.matrix(reformulate(object$predictors), data = xnew)[, -1]
+  model.matrix(stats::reformulate(object$predictors), data = xnew)[, -1]
 }
 
 get_abs_risk <- function(object, xnew, event, horizon, use_initial_fit = FALSE) {

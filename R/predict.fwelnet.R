@@ -44,7 +44,6 @@ predict.fwelnet <- function(object, xnew, type = c("link", "response", "coeffici
     # Allow data.frame/categorical input for survival without intercept
     if (is.data.frame(xnew)) {
       if (object$family == "cox") {
-        #xnew <- model.matrix(~ . -1, xnew)
         xnew <- model.matrix(~ ., xnew)[, -1, drop = FALSE]
       } else {
         xnew <- model.matrix(~ ., xnew)

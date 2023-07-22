@@ -11,7 +11,8 @@
   event = 1,
   times = NULL,
   use_initial_fit = FALSE,
-  reference = c("zero", "sample")
+  reference = c("zero", "sample"),
+  ...
 )
 }
 \arguments{
@@ -28,6 +29,8 @@
 \item{use_initial_fit}{(\code{FALSE}) If \code{TRUE}, uses the initial \code{glmnet} fit of the cooper algorithm.}
 
 \item{reference}{\strong{NYI} Either \code{"zero"} or \code{"sample"}.}
+
+\item{...}{Unused.}
 }
 \value{
 For \code{type = "risk"}, a data.frame with columns "id", "event", "lp", "eXb".
