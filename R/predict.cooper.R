@@ -49,7 +49,7 @@ predict.cooper <- function(
   # subset to ensure only predictors are contained in new data
   # if new data is a data.table this would need with = FALSE
   if (inherits(xnew, "data.table")) xnew <- as.data.frame(xnew)
-  xnew[, object$predictors, drop = FALSE]
+  xnew <- xnew[, object$predictors, drop = FALSE]
 
   if (type == "risk") {
     # If event is length 2, lapply
@@ -112,8 +112,8 @@ get_abs_risk <- function(object, xnew, event, horizon, use_initial_fit = FALSE) 
 
   marginal_chazard <- Reduce(`+`, cumhazards)
 
-
-  marginal_surv <- exp(-marginal_chazard)
+  marginal_surv <- apply(marginal_chazard, 2, \(H) exp(-H))
+  #marginal_surv <- exp(-marginal_chazard)
   # (exp(eta) * h0(t)) * S(t)  -> he(t) * S(t)
   #abs_risk <- as.vector(risks * as.vector(base_haz) * marginal_surv)
   abs_risk <- as.vector(risks * base_haz %*% marginal_surv)
