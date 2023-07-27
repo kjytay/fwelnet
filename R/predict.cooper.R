@@ -48,6 +48,7 @@ predict.cooper <- function(
   
   # subset to ensure only predictors are contained in new data
   # if new data is a data.table this would need with = FALSE
+  stopifnot("xnew must contain all original predictors" = all(object$predictors %in% names(xnew)))
   if (inherits(xnew, "data.table")) xnew <- as.data.frame(xnew)
   xnew <- xnew[, object$predictors, drop = FALSE]
 
@@ -90,7 +91,16 @@ predict.cooper <- function(
 #' @keywords internal
 #' @importFrom stats reformulate
 x_modelmat <- function(object, xnew) {
-  model.matrix(stats::reformulate(object$predictors), data = xnew)[, -1]
+  checkmate::assert_class(object, "cooper")
+  
+  xmat <- model.matrix(stats::reformulate(object$predictors), data = xnew)[, -1]
+  
+  if (!identical(colnames(xmat), colnames(object$x))) {
+    stop(paste("`xnew` does not match original training data format after applying model.matrix().",
+               "Ensure `xnew` includes the correct variables of the same types as the original data."))
+  }
+  
+  xmat
 }
 
 get_abs_risk <- function(object, xnew, event, horizon, use_initial_fit = FALSE) {
