@@ -105,7 +105,16 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
       
       if (inherits(y, "Surv")) {
         x <- x[, -1, drop = FALSE]
+        
+        if (ncol(x) != nrow(z)) {
+          stop("z must have same number of rows as x has columns *after applying model.matrix* and dropping intercept")
+        }
       } 
+    }
+    
+    
+    if (ncol(x) != nrow(z)) {
+      stop("z must have same number of rows as x has columns!")
     }
 
     n <- nrow(x); p <- ncol(x); K <- ncol(z)
@@ -127,6 +136,11 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
     mx <- colMeans(x)
     if (standardize) {
         sx <- apply(x, 2, sd) * sqrt((n-1) / n)
+        
+        if (any(sx == 0)) {
+          stop("Constant variable detected at ", paste(names(sx[which(sx == 0)]), collapse = ", "))
+        }
+        
     } else {
         sx <- rep(1, ncol(x))
     }
@@ -141,6 +155,7 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
     # fit elastic net; if lambda sequence not provided, use the glmnet default
     # come up with lambda values: use the lambda sequence from glmnet
     if (is.null(lambda)) {
+    # If x has constant variables, standardization produces NaNs which look like misisng value error in this step
      glmfit <- glmnet::glmnet(x, y,
        alpha = alpha, family = family,
        standardize = FALSE
@@ -296,6 +311,22 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
 
     # count no. of non-zero coefficients for each model
     nzero <- colSums(beta != 0)
+    
+    if (standardize) {
+      # A hacky bit (surprise!): To enable downstream use of survival::survfit using glmnet/coxnet objects, we hackily
+      # store the internal glmnet fit inside the fwelnet fit inside the cv.fwelnet fit. This is annoying but at least
+      # I don't have to reverse engineer what glmnet:::survfit.coxnet does (I tried).
+      # Caveat: If `standardize = TRUE`, glmnet is still called with standardize = FALSE inside of fwelnet during its
+      # theta-optimization (at this point the data is already standardized by fwelnet), so we could re-scale the coefs
+      # inside that glmnet fit or just resubstitute the coefficient matrix (across the full lambda path), and I guess
+      # that works.
+      
+      fit$beta <- Matrix::Matrix(
+        beta,
+        dimnames = dimnames(fit$beta),
+        sparse = TRUE
+      )
+    }
 
     out <- list(
       beta = beta, theta = theta, a0 = a0, lambda = lambda, 

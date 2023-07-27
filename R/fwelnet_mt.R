@@ -1,4 +1,4 @@
-#' Fit fwelnet for Multi-Task Learning
+#' Fit Cox-fwelnet for Multi-Task Learning
 #'
 #' Survival-focused implementation of the fwelnet-multitask algorithm described
 #' in Algorithm 2 on page 13 (Tay et. al. 2020)
@@ -35,7 +35,7 @@
 #' @return An object of class `cooper` with `cv.fwelnet` objects of the final iteration.
 #' If `include_mt_beta_history = TRUE`, contains per-cause beta matrices for each iteration step.
 #'
-fwelnet_mt_cox <- function(data, 
+cooper <- function(data, 
                            causes = 1:2, # Mostly unused for now
                            mt_max_iter = 5,
                            z_method = "original",
@@ -201,25 +201,25 @@ fwelnet_mt_cox <- function(data,
     k <- k + 1
   }
   
-  if (standardize) {
-    # A hacky bit (surprise!): To enable downstream use of survival::survfit using glmnet/coxnet objects, we hackily
-    # store the internal glmnet fit inside the fwelnet fit inside the cv.fwelnet fit. This is annoying but at least
-    # I don't have to reverse engineer what glmnet:::survfit.coxnet does (I tried).
-    # Caveat: If `standardize = TRUE`, glmnet is still called with standardize = FALSE inside of fwelnet during its
-    # theta-optimization (at this point the data is already standardized by fwelnet), so we could re-scale the coefs
-    # inside that glmnet fit or just resubstitute the coefficient matrix (across the full lambda path), and I guess
-    # that works.
-    
-    # Ensure same dimnames and class (dgCMatrix)
-    
-    for (i in causes) {
-      fw_cv_list[[i]]$glmfit$glmfit$beta <- Matrix::Matrix(
-        fw_cv_list[[i]]$glmfit$beta, 
-        dimnames = dimnames(fw_cv_list[[i]]$glmfit$glmfit$beta), 
-        sparse = TRUE
-      )
-      
-    }
+  # if (standardize) {
+  #   # A hacky bit (surprise!): To enable downstream use of survival::survfit using glmnet/coxnet objects, we hackily
+  #   # store the internal glmnet fit inside the fwelnet fit inside the cv.fwelnet fit. This is annoying but at least
+  #   # I don't have to reverse engineer what glmnet:::survfit.coxnet does (I tried).
+  #   # Caveat: If `standardize = TRUE`, glmnet is still called with standardize = FALSE inside of fwelnet during its
+  #   # theta-optimization (at this point the data is already standardized by fwelnet), so we could re-scale the coefs
+  #   # inside that glmnet fit or just resubstitute the coefficient matrix (across the full lambda path), and I guess
+  #   # that works.
+  #   
+  #   # Ensure same dimnames and class (dgCMatrix)
+  #   
+  #   for (i in causes) {
+  #     fw_cv_list[[i]]$glmfit$glmfit$beta <- Matrix::Matrix(
+  #       fw_cv_list[[i]]$glmfit$beta, 
+  #       dimnames = dimnames(fw_cv_list[[i]]$glmfit$glmfit$beta), 
+  #       sparse = TRUE
+  #     )
+  #     
+  #   }
     
     # xn1 <- dimnames(fw_cv_list[[1]]$glmfit$glmfit$beta)
     # xn2 <- dimnames(fw_cv_list[[2]]$glmfit$glmfit$beta)
@@ -227,7 +227,7 @@ fwelnet_mt_cox <- function(data,
     # fw_cv_list[[1]]$glmfit$glmfit$beta <- Matrix::Matrix(fw_cv_list[[1]]$glmfit$beta, dimnames = xn1, sparse = TRUE)
     # fw_cv_list[[2]]$glmfit$glmfit$beta <- Matrix::Matrix(fw_cv_list[[2]]$glmfit$beta, dimnames = xn2, sparse = TRUE)
     # 
-  }
+  #}
   
 
 
@@ -259,4 +259,40 @@ fwelnet_mt_cox <- function(data,
   
   class(ret) <- c("cooper")
   ret
+}
+
+
+#' @export
+#' @rdname cooper
+fwelnet_mt_cox <- cooper
+
+
+
+beta_to_df <- function(beta) {
+  # beta <- fit$beta1
+  colnames(beta) <- seq_len(ncol(beta))
+  beta <- data.table::data.table(x = rownames(beta), beta)
+  beta <- data.table::melt(beta, id.vars = "x", variable.name = "iteration", variable.factor = FALSE, value.name = "coef")
+  beta[, iteration := as.integer(iteration)]
+  beta
+}
+
+#' Extract beta coefficients across cooper iterations
+#'
+#' @param object Object of class `"cooper"`, see [cooper()].
+#'
+#' @return A [data.table].
+#' @export
+#'
+#' @examples
+extract_beta_history <- function(object) {
+  checkmate::assert_class(object, "cooper")
+  if (!("beta1" %in% names(object))) {
+    stop("Object does not contain beta history. Fit models using `include_mt_beta_history` = TRUE")
+  }
+  
+  rbind(
+    beta_to_df(object$beta1)[, event := 1],
+    beta_to_df(object$beta2)[, event := 2]
+  )
 }
