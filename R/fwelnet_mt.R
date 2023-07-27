@@ -20,7 +20,7 @@
 #'  This is helpful in cases where many censored observations in folds lead to errors during model fits.
 #' @param standardize Passed to [`cv.fwelnet`] and [`cv.glmnet`] respectively.
 #' @param verbose Display informative message on the state of the mt fit.
-#' @param nfolds (`10`) Passed to [`cv.fwelnet`] and [`cv.glmnet`] respectively.
+#' @param nfolds (`10`) Used for `stratify_by_status` and only has effect if that is `TRUE`.
 #' @param include_mt_beta_history `[FALSE]` If `TRUE`, output `list` includes
 #'   components `beta1` and `beta2`, matrices of dimensions `p` x `mt_iter_max + 1`
 #'   containing coefficient vectors for causes 1 and 2 for each multi-task iteration,
@@ -31,6 +31,7 @@
 #' @export
 #' @importFrom survival Surv
 #' @importFrom glmnet cv.glmnet
+#' @importFrom Matrix Matrix
 #' @return An object of class `cooper` with `cv.fwelnet` objects of the final iteration.
 #' If `include_mt_beta_history = TRUE`, contains per-cause beta matrices for each iteration step.
 #'
@@ -61,6 +62,10 @@ fwelnet_mt_cox <- function(data,
   assert_numeric(thresh, any.missing = FALSE, lower = 0, len = 1)
   assert_int(nfolds, lower = 3)
   assert_logical(include_mt_beta_history, len = 1)
+
+  if ("nfolds" %in% names(match.call()) & !stratify_by_status) {
+    warning("nfolds argument only has effect if stratify_by_status = TRUE")
+  }
 
   # data prep ---------------------------------------------------------------
   rowidx <- list()
@@ -196,29 +201,35 @@ fwelnet_mt_cox <- function(data,
     k <- k + 1
   }
   
-  # get baseline hazards using x = 0 as reference, possibly bad idea according to ?basehaz
-  newdata_zero <- X[1, ] * 0
-  
-  basehazards <- lapply(causes, \(e) {
-    # Accesses the glmnet fit returned with the fwelnet fit with the cv.fwelnet object (naming is bad here yes)
-    bhraw <- survival::survfit(
-      fw_cv_list[[e]]$glmfit$glmfit, s = fw_cv_list[[e]]$lambda.min, 
-      x = X,
-      y = y_list[[e]],
-      newx = newdata_zero,
-      se.fit = FALSE
-    )
+  if (standardize) {
+    # A hacky bit (surprise!): To enable downstream use of survival::survfit using glmnet/coxnet objects, we hackily
+    # store the internal glmnet fit inside the fwelnet fit inside the cv.fwelnet fit. This is annoying but at least
+    # I don't have to reverse engineer what glmnet:::survfit.coxnet does (I tried).
+    # Caveat: If `standardize = TRUE`, glmnet is still called with standardize = FALSE inside of fwelnet during its
+    # theta-optimization (at this point the data is already standardized by fwelnet), so we could re-scale the coefs
+    # inside that glmnet fit or just resubstitute the coefficient matrix (across the full lambda path), and I guess
+    # that works.
     
-    data.frame(
-      event = e,
-      time = bhraw$time,
-      n.risk = bhraw$n.risk,
-      surv = bhraw$surv,
-      cumhaz = bhraw$cumhaz,
-      hazard = diff(c(0, bhraw$cumhaz))
-    )
-  })
+    # Ensure same dimnames and class (dgCMatrix)
+    
+    for (i in causes) {
+      fw_cv_list[[i]]$glmfit$glmfit$beta <- Matrix::Matrix(
+        fw_cv_list[[i]]$glmfit$beta, 
+        dimnames = dimnames(fw_cv_list[[i]]$glmfit$glmfit$beta), 
+        sparse = TRUE
+      )
+      
+    }
+    
+    # xn1 <- dimnames(fw_cv_list[[1]]$glmfit$glmfit$beta)
+    # xn2 <- dimnames(fw_cv_list[[2]]$glmfit$glmfit$beta)
+    # 
+    # fw_cv_list[[1]]$glmfit$glmfit$beta <- Matrix::Matrix(fw_cv_list[[1]]$glmfit$beta, dimnames = xn1, sparse = TRUE)
+    # fw_cv_list[[2]]$glmfit$glmfit$beta <- Matrix::Matrix(fw_cv_list[[2]]$glmfit$beta, dimnames = xn2, sparse = TRUE)
+    # 
+  }
   
+
 
   # Returns betas and anything else that might be interesting
   ret <- list(
@@ -234,8 +245,6 @@ fwelnet_mt_cox <- function(data,
     # model matrix
     x = X, y = y_list,
     predictors = setdiff(colnames(data), c("time", "status")),
-    # Baseline hazards
-    basehazards = basehazards,
     # Check mt iterations later to assess reasonable values
     mt_iter = k - 1, # Adjust since k can't start at 0
     mt_max_iter = mt_max_iter,
