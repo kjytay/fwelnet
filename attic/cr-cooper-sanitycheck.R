@@ -87,8 +87,8 @@ cleanup_score <- function(scores) {
 set.seed(123)
 instance <- simple_cr(
   n = 1000, p = 4, 
-  beta1 = c(0.5, 0.3, -0.3, 0.5), 
-  beta2 = c(0.5, -0.3, 0.3, -0.5),
+  beta1 = c(0.4, 0.3, -0.2, 0.5), 
+  beta2 = c(0.5, -0.3, -0.7, -0.4),
   # Make event 1 a bit rarer
   lambda1 = 0.02, lambda2 = 0.1,
   lambda_c = 0.1
@@ -96,16 +96,19 @@ instance <- simple_cr(
 xtrain <- instance$data
 table(xtrain$status)
 
+survfit(Surv(instance$time, instance$status_c1) ~ 1) |>
+  plot()
+
 # Models: full model sees all features, reduced model only sees x1 and x2
 # Focusing on event 1
 
 # Fit Cooper ------------------------------------------------------------------------------------------------------
 cooper_full <- cooper(
-  data = xtrain, mt_max_iter = 5, stratify_by_status = TRUE, alpha = 1, epsilon1 = 1e-10, epsilon2 = 1e-10
+  data = xtrain, mt_max_iter = 5, stratify_by_status = TRUE, alpha = 1, verbose = TRUE, epsilon1 = 1e-13, epsilon2 = 1e-13
 )
 
 cooper_reduced <- cooper(
-  data = xtrain[, c("time", "status", "x1", "x2")], mt_max_iter = 5, stratify_by_status = TRUE, verbose = TRUE, epsilon1 = 1e-10, epsilon2 = 1e-10
+  data = xtrain[, c("time", "status", "x1", "x2")], mt_max_iter = 5, stratify_by_status = TRUE, verbose = TRUE, epsilon1 = 1e-13, epsilon2 = 1e-13
 )
 
 # Fit vanilla glmnet ----------------------------------------------------------------------------------------------
