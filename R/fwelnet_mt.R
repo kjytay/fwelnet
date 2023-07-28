@@ -25,6 +25,8 @@
 #'   components `beta1` and `beta2`, matrices of dimensions `p` x `mt_iter_max + 1`
 #'   containing coefficient vectors for causes 1 and 2 for each multi-task iteration,
 #'   with the first column corresponding to the original `cv.glmnet` solution.
+#' @param epsilon1,epsilon2 RMSE between beta1 and beta2 values of consecutive iterations to consider equal to stop the algorithm.
+#'   Defaults to `sqrt(.Machine$double.eps)`, roughly 1.5e-08 on conventional machines.
 #' @param ... Passed to [`fwelnet()`]
 #' @inheritParams fwelnet
 #'
@@ -57,6 +59,8 @@ cooper <- function(data,
                    thresh = 1e-3,
                    nfolds = 10,
                    include_mt_beta_history = FALSE,
+                   epsilon1 = sqrt(.Machine$double.eps),
+                   epsilon2 = epsilon1,
                    ...) {
   
   # Convert to data.frame just in case it's a data.table
@@ -186,20 +190,29 @@ cooper <- function(data,
     fw_cv_list[[1]] <- cv.fwelnet(X, y_list[[1]], z1, family = "cox", alpha = alpha, t = t, a = a, thresh = thresh, foldid = y1foldids, standardize = standardize, ...)
     beta1[, k + 1] <- fw_cv_list[[1]]$glmfit$beta[, which(fw_cv_list[[1]]$lambda == fw_cv_list[[1]]$lambda.min)]
 
-    # Check beta differences, break if differences are 0
+    # Check beta differences, break if differences "small enough" I guess
     beta1_diff <- beta1[, k] - beta1[, k + 1]
     beta2_diff <- beta2[, k] - beta2[, k + 1]
+    
+    # rmse kind of?
+    beta1_eps <- sqrt(mean(beta1_diff^2))
+    beta2_eps <- sqrt(mean(beta2_diff^2))
 
-    beta1_stagnant <- isTRUE(all.equal(beta1_diff, rep(0, length(beta1_diff))))
-    beta2_stagnant <- isTRUE(all.equal(beta2_diff, rep(0, length(beta2_diff))))
+    # good old epsilon.
+    beta1_stagnant <- isTRUE(beta1_eps < epsilon1)
+    beta2_stagnant <- isTRUE(beta2_eps < epsilon2)
 
     if (verbose) {
       if (beta1_stagnant) message("No change in beta1 after k = ", k)
       if (beta2_stagnant) message("No change in beta2 after k = ", k)
     }
 
-    if (beta1_stagnant & beta2_stagnant) {
-      message("No change in beta{1,2} at k = ", k)
+    if (beta1_stagnant) {
+      message("No change in beta1 at k = ", k)
+      break
+    }
+    if (beta2_stagnant) {
+      message("No change in beta2 at k = ", k)
       break
     }
 
@@ -259,7 +272,8 @@ cooper <- function(data,
     # Check mt iterations later to assess reasonable values
     mt_iter = k - 1, # Adjust since k can't start at 0
     mt_max_iter = mt_max_iter,
-    converged = ((k - 1) < mt_max_iter)
+    converged = ((k - 1) < mt_max_iter),
+    beta_eps = c(beta1 = beta1_eps, beta2 = beta2_eps)
   )
   
   if (include_mt_beta_history) {

@@ -19,6 +19,8 @@ cooper(
   thresh = 0.001,
   nfolds = 10,
   include_mt_beta_history = FALSE,
+  epsilon1 = sqrt(.Machine$double.eps),
+  epsilon2 = epsilon1,
   ...
 )
 
@@ -36,6 +38,8 @@ fwelnet_mt_cox(
   thresh = 0.001,
   nfolds = 10,
   include_mt_beta_history = FALSE,
+  epsilon1 = sqrt(.Machine$double.eps),
+  epsilon2 = epsilon1,
   ...
 )
 }
@@ -80,6 +84,9 @@ least this factor, we terminate the optimization early. Default is 1e-4.}
 components \code{beta1} and \code{beta2}, matrices of dimensions \code{p} x \code{mt_iter_max + 1}
 containing coefficient vectors for causes 1 and 2 for each multi-task iteration,
 with the first column corresponding to the original \code{cv.glmnet} solution.}
+
+\item{epsilon1, epsilon2}{RMSE between beta1 and beta2 values of consecutive iterations to consider equal to stop the algorithm.
+Defaults to \code{sqrt(.Machine$double.eps)}, roughly 1.5e-08 on conventional machines.}
 
 \item{...}{Passed to \code{\link[=fwelnet]{fwelnet()}}}
 }
