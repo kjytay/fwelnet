@@ -35,18 +35,29 @@
 #' @return An object of class `cooper` with `cv.fwelnet` objects of the final iteration.
 #' If `include_mt_beta_history = TRUE`, contains per-cause beta matrices for each iteration step.
 #'
+#' @examples
+#' data(pbc, package = "survival")
+#' pbc <- na.omit(pbc)
+#' xtrain <- pbc[1:270, -1]
+#' 
+#' set.seed(12)
+#' cooperfit <- cooper(
+#'   xtrain, mt_max_iter = 3,
+#'   stratify_by_status = TRUE
+#' )
+#' 
 cooper <- function(data, 
-                           causes = 1:2, # Mostly unused for now
-                           mt_max_iter = 5,
-                           z_method = "original",
-                           stratify_by_status = FALSE,
-                           alpha = 1, # pass to glmnet and fwelnet
-                           standardize = TRUE,
-                           verbose = FALSE, t = 1, a = 0.5, 
-                           thresh = 1e-3,
-                           nfolds = 10,
-                           include_mt_beta_history = FALSE,
-                           ...) {
+                   causes = 1:2, # Mostly unused for now
+                   mt_max_iter = 5,
+                   z_method = "original",
+                   stratify_by_status = FALSE,
+                   alpha = 1, # pass to glmnet and fwelnet
+                   standardize = TRUE,
+                   verbose = FALSE, t = 1, a = 0.5, 
+                   thresh = 1e-3,
+                   nfolds = 10,
+                   include_mt_beta_history = FALSE,
+                   ...) {
   
   # Convert to data.frame just in case it's a data.table
   data <- as.data.frame(data)
@@ -283,8 +294,6 @@ beta_to_df <- function(beta) {
 #'
 #' @return A [data.table].
 #' @export
-#'
-#' @examples
 extract_beta_history <- function(object) {
   checkmate::assert_class(object, "cooper")
   if (!("beta1" %in% names(object))) {

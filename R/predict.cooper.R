@@ -154,7 +154,7 @@ get_event_times <- function(surv, horizon = NULL) {
 #' @param ... Unused
 #'
 #' @return Matrix of dimension `nrow(newdata)` x `length(times)`
-# @export
+#' @export
 #' @exportS3Method riskRegression::predictRisk
 #' @examples
 #' if (requireNamespace("riskRegression")) {
