@@ -108,7 +108,7 @@ cooper <- function(data,
   stopifnot(orig_status[["2"]] == c2_status[["1"]])
 
   # Predictor matrix shared for all causes
-  X <- data[, !(names(data) %in% c("time", "status"))]
+  X <- data[, !(names(data) %in% c("time", "status")), drop = FALSE]
   # Treatment-encode factors, ensure numeric design matrix without intercept
   X <- model.matrix(~ ., X)
   # Dropping intercept also drops attributes, not sure of this is a problem
