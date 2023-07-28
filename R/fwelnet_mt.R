@@ -202,28 +202,27 @@ cooper <- function(data,
     beta1_stagnant <- isTRUE(beta1_eps < epsilon1)
     beta2_stagnant <- isTRUE(beta2_eps < epsilon2)
 
-    if (verbose) {
-      if (beta1_stagnant) message("No change in beta1 after k = ", k)
-      if (beta2_stagnant) message("No change in beta2 after k = ", k)
-    }
-
     if (beta1_stagnant) {
-      message("No change in beta1 at k = ", k)
+      if (verbose) message("No change in beta1 at k = ", k, ": rmse(beta1_k, beta1_k+1) = ", beta1_eps)
       break
     }
     if (beta2_stagnant) {
-      message("No change in beta2 at k = ", k)
+      if (verbose) message("No change in beta2 at k = ", k, ": rmse(beta2_k, beta2_k+1) = ", beta2_eps)
       break
     }
 
-    if (verbose) {
-      message("Change in beta{1,2}: ")
-      print(rbind(beta1_diff, beta2_diff), digits = 3)
-    }
+    if (beta1_stagnant | beta2_stagnant) break
 
     # Increment k at the very last step
     k <- k + 1
   }
+  
+  if (verbose & k == 2 & mt_max_iter > 2) {
+    message(paste("Algorithm stopped at k = 2, indicating no meaningful change in coefficient estimates compared to",
+                  "cause-specific glmnet (k = 1)"))
+  }
+  
+  
   
   # if (standardize) {
   #   # A hacky bit (surprise!): To enable downstream use of survival::survfit using glmnet/coxnet objects, we hackily
