@@ -49,7 +49,6 @@ simple_cr <- function(n = 100, p = 4, beta1 = rep(0.5, p), beta2 = beta1, lambda
   colnames(X) <- paste0("x", seq_len(p))
   xdat <- data.frame(time = ti, status = di, X)
   
-  
   # separate event indicators for cause-specific fitting
   status_c1 <- status_c2 <- di
   status_c1[which(di == 2)] <- 0
@@ -90,7 +89,7 @@ instance <- simple_cr(
   beta1 = c(0.4, 0.3, -0.2, 0.5), 
   beta2 = c(0.5, -0.3, -0.7, -0.4),
   # Make event 1 a bit rarer
-  lambda1 = 0.02, lambda2 = 0.1,
+  lambda1 = 0.05, lambda2 = 0.1,
   lambda_c = 0.1
 )
 xtrain <- instance$data
@@ -104,11 +103,18 @@ survfit(Surv(instance$time, instance$status_c1) ~ 1) |>
 
 # Fit Cooper ------------------------------------------------------------------------------------------------------
 cooper_full <- cooper(
-  data = xtrain, mt_max_iter = 5, stratify_by_status = TRUE, alpha = 1, verbose = TRUE, epsilon1 = 1e-13, epsilon2 = 1e-13
+  data = xtrain, mt_max_iter = 5, stratify_by_status = TRUE, alpha = 1, verbose = TRUE, 
+  #t = 100, thresh = 1e-7,
+  epsilon1 = 1e-15, epsilon2 = 1e-15
+)
+
+cbind(
+  cooper = coef(cooper_full, event = 1),
+  truth = instance$beta1
 )
 
 cooper_reduced <- cooper(
-  data = xtrain[, c("time", "status", "x1", "x2")], mt_max_iter = 5, stratify_by_status = TRUE, verbose = TRUE, epsilon1 = 1e-13, epsilon2 = 1e-13
+  data = xtrain[, c("time", "status", "x1", "x2")], mt_max_iter = 5, stratify_by_status = TRUE, verbose = TRUE, epsilon1 = 1e-15, epsilon2 = 1e-15
 )
 
 # Fit vanilla glmnet ----------------------------------------------------------------------------------------------
