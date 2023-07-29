@@ -17,6 +17,7 @@ Imports:
     survival
 Suggests: 
     knitr,
+    mvtnorm,
     riskRegression,
     rmarkdown,
     testthat (>= 3.0.0)
