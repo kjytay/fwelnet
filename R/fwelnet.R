@@ -88,7 +88,7 @@ fwelnet <- function(x, y, z, lambda = NULL, family = c("gaussian", "binomial", "
                     verbose = FALSE) {
     this.call <- match.call()
 
-    assert_number(alpha, lower = 1, upper = 1)
+    checkmate::assert_number(alpha, lower = 0, upper = 1)
     
     # If we allow weight_fun to be an actual function, we can't rely on == 
     # for character comparison. Maybe pre-defining weight_funs and using
