@@ -8,6 +8,7 @@
 cooper(
   data,
   causes = 1:2,
+  strata = NULL,
   mt_max_iter = 5,
   z_method = "original",
   stratify_by_status = FALSE,
@@ -27,6 +28,7 @@ cooper(
 fwelnet_mt_cox(
   data,
   causes = 1:2,
+  strata = NULL,
   mt_max_iter = 5,
   z_method = "original",
   stratify_by_status = FALSE,
@@ -48,6 +50,9 @@ fwelnet_mt_cox(
 with outcome variables assumed to be named \code{"time"} and \code{"status"}.}
 
 \item{causes}{(Unused for now) Integer vector indicating causes, e.g. \code{1:2} for two causes.}
+
+\item{strata}{\verb{[NULL]} Quoted name of a stratification variable.
+Passed to \link[glmnet:stratifySurv]{glmnet::stratifySurv} as \code{strata = data[[strata]]}.}
 
 \item{mt_max_iter}{\verb{[5]} number of mt-iterations to perform. Will break early
 if no change in per-cause beta vector between iterations is detected.

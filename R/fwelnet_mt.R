@@ -6,6 +6,8 @@
 #' @param data A data.frame or matrix holding predictors and outcome,
 #' with outcome variables assumed to be named `"time"` and `"status"`.
 #' @param causes (Unused for now) Integer vector indicating causes, e.g. `1:2` for two causes.
+#' @param strata `[NULL]` Quoted name of a stratification variable.
+#'   Passed to [glmnet::stratifySurv] as `strata = data[[strata]]`.
 #' @param mt_max_iter `[5]` number of mt-iterations to perform. Will break early
 #' if no change in per-cause beta vector between iterations is detected.
 #' If set to `0`, no `fwelnet` iteration will be performed and the returned
@@ -50,6 +52,7 @@
 #' 
 cooper <- function(data, 
                    causes = 1:2, # Mostly unused for now
+                   strata = NULL,
                    mt_max_iter = 5,
                    z_method = "original",
                    stratify_by_status = FALSE,
@@ -123,6 +126,16 @@ cooper <- function(data,
     survival::Surv(data$time, event = status_c1),
     survival::Surv(data$time, event = status_c2)
   )
+  
+  if (!is.null(strata)) {
+    checkmate::assert_subset(strata, choices = names(X))
+    
+    # Modify y to add the stratification attribute
+    y_list <- lapply(y_list, \(x) glmnet::stratifySurv(x, strata = X[[strata]]))
+    
+    # Remove stratification variable from feature matrix
+    X <- X[-(which(names(X) == strata))]
+  }
   
   # Stratify by status, generating per-observation fold IDs and passing those to initial
   # cv.glmnet and cv.fwelnet later on
