@@ -1,7 +1,7 @@
 Type: Package
 Package: fwelnet
 Title: Feature-Weighted Elastic Net
-Version: 0.1.0.9007
+Version: 0.1.0.9008
 Author: Kenneth Tay, Robert Tibshirani
 Maintainer: Kenneth Tay <kjytay@stanford.edu>
 Description: A method for fitting the entire regularization path of the
@@ -12,6 +12,7 @@ License: GPL-3
 Imports: 
     checkmate,
     glmnet,
+    stats,
     Matrix,
     data.table,
     survival

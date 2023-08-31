@@ -302,7 +302,8 @@ fwelnet_mt_cox <- cooper
 
 
 beta_to_df <- function(beta) {
-  # beta <- fit$beta1
+  iteration <- NULL # global var
+
   colnames(beta) <- seq_len(ncol(beta))
   beta <- data.table::data.table(x = rownames(beta), beta)
   beta <- data.table::melt(beta, id.vars = "x", variable.name = "iteration", variable.factor = FALSE, value.name = "coef")
@@ -317,6 +318,7 @@ beta_to_df <- function(beta) {
 #' @return A [data.table].
 #' @export
 extract_beta_history <- function(object) {
+  event <- NULL # global var
   checkmate::assert_class(object, "cooper")
   if (!("beta1" %in% names(object))) {
     stop("Object does not contain beta history. Fit models using `include_mt_beta_history` = TRUE")

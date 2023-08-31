@@ -86,5 +86,5 @@ test_that("low dim predict: absrisk", {
 
 test_that("various sanity checks", {
   expect_error(fwelnet_mt_cox(train, standardize = TRUE, nfolds = 2))
-  expect_warning(cooper(train, standardize = TRUE, nfolds = 4, mt_max_iter = 1))
+  expect_warning(expect_error(cooper(train, standardize = TRUE, nfolds = 4, mt_max_iter = 1)))
 })

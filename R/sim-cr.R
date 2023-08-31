@@ -7,6 +7,7 @@
 #' @param lambda_c Baseline hazard constant for the uninformative censoring distribution.
 #' @param r Correlation between features
 #' @export
+#' @importFrom stats rnorm toeplitz
 #' 
 #' @examples
 #' sim_cr_coxexp()
