@@ -11,10 +11,10 @@ Description: A method for fitting the entire regularization path of the
 License: GPL-3
 Imports: 
     checkmate,
-    glmnet,
-    stats,
-    Matrix,
     data.table,
+    glmnet,
+    Matrix,
+    stats,
     survival
 Suggests: 
     knitr,
@@ -27,5 +27,5 @@ VignetteBuilder:
 Config/testthat/edition: 3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.3
 Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
