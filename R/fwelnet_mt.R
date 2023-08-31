@@ -104,22 +104,10 @@ cooper <- function(data,
 
   # Sanity check ----
   orig_status <- table(data$status)
-  c1_status <- table(status_c1)
-  c2_status <- table(status_c2)
-
-  # All have same N
-  stopifnot(all.equal(sum(orig_status), sum(c1_status), sum(c2_status)))
 
   # Events check out
-  stopifnot(orig_status[["1"]] == c1_status[["1"]])
-  stopifnot(orig_status[["2"]] == c2_status[["1"]])
-
-  # Predictor matrix shared for all causes
-  X <- data[, !(names(data) %in% c("time", "status")), drop = FALSE]
-  # Treatment-encode factors, ensure numeric design matrix without intercept
-  X <- model.matrix(~ ., X)
-  # Dropping intercept also drops attributes, not sure of this is a problem
-  X <- X[, -1, drop = FALSE] 
+  stopifnot(orig_status[["1"]] == table(status_c1)[["1"]])
+  stopifnot(orig_status[["2"]] == table(status_c2)[["1"]])
   
   # time is shared between causes
   y_list <- list(
@@ -134,9 +122,17 @@ cooper <- function(data,
     y_list <- lapply(y_list, \(x) glmnet::stratifySurv(x, strata = data[[strata]]))
     
     # Remove stratification variable from feature matrix
-    X <- X[, -(which(colnames(X) == strata))]
+    data <- data[, -(which(colnames(data) == strata)), drop = FALSE]
   }
-  
+
+  # Predictor matrix shared for all causes
+  X <- data[, -(which(colnames(data) %in% c("time", "status"))), drop = FALSE]
+  # Treatment-encode factors, ensure numeric design matrix without intercept
+  X <- model.matrix(~ ., X)
+  # Dropping intercept also drops attributes, not sure of this is a problem
+  X <- X[, -1, drop = FALSE] 
+
+
   # Stratify by status, generating per-observation fold IDs and passing those to initial
   # cv.glmnet and cv.fwelnet later on
   y1foldids <- NULL
