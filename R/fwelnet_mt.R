@@ -128,10 +128,10 @@ cooper <- function(data,
   )
   
   if (!is.null(strata)) {
-    checkmate::assert_subset(strata, choices = names(X))
+    checkmate::assert_subset(strata, choices = colnames(data))
     
     # Modify y to add the stratification attribute
-    y_list <- lapply(y_list, \(x) glmnet::stratifySurv(x, strata = X[[strata]]))
+    y_list <- lapply(y_list, \(x) glmnet::stratifySurv(x, strata = data[[strata]]))
     
     # Remove stratification variable from feature matrix
     X <- X[-(which(names(X) == strata))]
