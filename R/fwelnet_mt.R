@@ -134,7 +134,7 @@ cooper <- function(data,
     y_list <- lapply(y_list, \(x) glmnet::stratifySurv(x, strata = data[[strata]]))
     
     # Remove stratification variable from feature matrix
-    X <- X[-(which(names(X) == strata))]
+    X <- X[-(which(colnames(X) == strata))]
   }
   
   # Stratify by status, generating per-observation fold IDs and passing those to initial
