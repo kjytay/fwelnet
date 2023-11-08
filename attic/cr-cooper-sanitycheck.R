@@ -7,7 +7,7 @@ stopifnot(
   "Update fwelnet: remotes::install_github('jemus42/fwelnet')" = packageVersion("fwelnet") >= package_version("0.1.0.9006")
 )
 
-# Reduced version of Bindert et al dgp, basically just cox exponential model mit normal predictors and equal event and censoring props
+# Reduced version of Bindert et al dgp, basically just cox exponential model with normal predictors and equal event and censoring props
 simple_cr <- function(n = 100, p = 4, beta1 = rep(0.5, p), beta2 = beta1, lambda1 = 0.1, lambda2 = lambda1, lambda_c = 0.1, r = 0) {
   
   checkmate::assert_int(n, lower = 10)
@@ -86,11 +86,12 @@ cleanup_score <- function(scores) {
 set.seed(123)
 instance <- simple_cr(
   n = 1000, p = 4, 
-  beta1 = c(0.4, 0.3, -0.2, 0.5), 
-  beta2 = c(0.5, -0.3, -0.7, -0.4),
+  beta1 = 3 * c(0.2, 0.1, 0, 0), 
+  beta2 = c(0.1, 0.05, 0, 0),
   # Make event 1 a bit rarer
   lambda1 = 0.05, lambda2 = 0.1,
-  lambda_c = 0.1
+  lambda_c = 0.1,
+  r = 0.1
 )
 xtrain <- instance$data
 table(xtrain$status)
@@ -103,8 +104,8 @@ survfit(Surv(instance$time, instance$status_c1) ~ 1) |>
 
 # Fit Cooper ------------------------------------------------------------------------------------------------------
 cooper_full <- cooper(
-  data = xtrain, mt_max_iter = 5, stratify_by_status = TRUE, alpha = 1, verbose = TRUE, 
-  #t = 100, thresh = 1e-7,
+  data = xtrain, mt_max_iter = 3, stratify_by_status = TRUE, alpha = 1, verbose = TRUE, 
+  t = 100, thresh = 1e-7,
   epsilon1 = 1e-15, epsilon2 = 1e-15
 )
 
@@ -113,9 +114,25 @@ cbind(
   truth = instance$beta1
 )
 
+cooper_full$fwelfits[[1]]$glmfit$theta
+cooper_full$fwelfits[[2]]$glmfit$theta
+cooper_full$fwelfits[[1]]$glmfit$theta_store
+cooper_full$fwelfits[[2]]$glmfit$theta_store
+
 cooper_reduced <- cooper(
-  data = xtrain[, c("time", "status", "x1", "x2")], mt_max_iter = 5, stratify_by_status = TRUE, verbose = TRUE, epsilon1 = 1e-15, epsilon2 = 1e-15
+  data = xtrain[, c("time", "status", "x1", "x2")], mt_max_iter = 5, 
+  t = 100, thresh = 1e-7,
+  stratify_by_status = TRUE, verbose = TRUE, epsilon1 = 1e-15, epsilon2 = 1e-15
 )
+
+cooper_reduced$fwelfits[[1]]$glmfit$theta
+cooper_reduced$fwelfits[[2]]$glmfit$theta
+cooper_reduced$fwelfits[[1]]$glmfit$theta_store
+cooper_reduced$fwelfits[[2]]$glmfit$theta_store
+
+# predict ---------------------------------------------------------------------------------------------------------
+
+
 
 # Fit vanilla glmnet ----------------------------------------------------------------------------------------------
 rr_glmnet_full <- GLMnet(
@@ -133,6 +150,14 @@ rr_glmnet_reduced <- GLMnet(
   cv = FALSE,
   standardize = TRUE, alpha = 1
 )
+
+cbind(
+  glmnet = as.numeric(rr_glmnet_full$fit$beta),
+  cooper_initial = coef(cooper_full, cause = 1, use_initial_fit = TRUE),
+  cooper = coef(cooper_full, cause = 1)
+)
+
+
 
 
 # Fit regular cause-specific cox ----------------------------------------------------------------------------------
@@ -303,17 +328,19 @@ fwelnet_signal_z <- cv.fwelnet(instance$Xmat, y = Surv(instance$time, instance$s
 
 set.seed(3)
 # Fit cv.glmnet with same lambda as 
-glmnet_fit <- cv.glmnet(instance$Xmat, y = Surv(instance$time, instance$status_c1), family = "cox", lambda = lambda_seq)
+glmnet_fit <- glmnet::cv.glmnet(instance$Xmat, y = Surv(instance$time, instance$status_c1), family = "cox", lambda = lambda_seq)
 
-# Expecting the to be idential
+# Expecting the to be identical
 identical(fwelnet_no_z$lambda, glmnet_fit$lambda)
 waldo::compare(fwelnet_no_z$lambda.min, glmnet_fit$lambda.min)
 
 # Comparing stored glmnet object to "vanilla" glmnet, expecting no meaningful differences
-waldo::compare(fwelnet_no_z$glmfit$glmfit, glmnet_fit$glmnet.fit)
+waldo::compare(fwelnet_no_z$glmfit$glmfit, glmnet_fit$glmnet.fit, tolerance = 1e-7)
 
 # Coefficient matrices differ though, but not by much
-waldo::compare(Matrix::Matrix(fwelnet_no_z$glmfit$beta, sparse = TRUE), glmnet_fit$glmnet.fit$beta, max_diffs = 6)
+waldo::compare(Matrix::Matrix(fwelnet_no_z$glmfit$beta, sparse = TRUE), 
+               glmnet_fit$glmnet.fit$beta, 
+               max_diffs = 6, tolerance = 1e-10)
 # Difference negligible (1e-16)
 as.numeric(Matrix::Matrix(fwelnet_no_z$glmfit$beta, sparse = TRUE) - glmnet_fit$glmnet.fit$beta) |> 
   summary()
@@ -323,7 +350,7 @@ identical(fwelnet_no_z$lambda, fwelnet_signal_z$lambda)
 waldo::compare(fwelnet_no_z$lambda.min, fwelnet_signal_z$lambda.min)
 
 # Comparing stored glmnet object to "vanilla" glmnet, expecting no meaningful differences
-waldo::compare(fwelnet_no_z$glmfit$glmfit, fwelnet_signal_z$glmfit$glmfit)
+waldo::compare(fwelnet_no_z$glmfit$glmfit, fwelnet_signal_z$glmfit$glmfit, tolerance = 1e-7)
 
 # Coefficient matrices differ enough to assume z has influence, not a big one but not the point here
 waldo::compare(fwelnet_no_z$glmfit$beta, fwelnet_signal_z$glmfit$beta, max_diffs = 1)

@@ -3,14 +3,15 @@ library(ggplot2)
 
 xp <- c("time", "status", "sex", "age", "trt", "logbili", "logprotime", "protimegrp", "stage")
 
-train <- riskRegression::simPBC(500)[xp]
+train <- riskRegression::simPBC(800)[xp]
 test <- riskRegression::simPBC(300)[xp]
 
-fit <- fwelnet_mt_cox(
+fit <- cooper(
   train,
+  strata = "sex",
   standardize = TRUE, nfolds = 10, stratify_by_status = TRUE,
-  thresh = 1e-7, t = 100,
-  mt_max_iter = 10, 
+  thresh = 1e-4, t = 100,
+  mt_max_iter = 3, 
   include_mt_beta_history = TRUE
 )
 
