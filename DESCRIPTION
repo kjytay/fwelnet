@@ -1,13 +1,16 @@
 Type: Package
-Package: fwelnet
-Title: Feature-Weighted Elastic Net
+Package: cooper
+Title: Cooperative Penalized Regression
 Version: 0.1.0.9008
-Author: Kenneth Tay, Robert Tibshirani
-Maintainer: Kenneth Tay <kjytay@stanford.edu>
-Description: A method for fitting the entire regularization path of the
-    feature-weighted elastic net (fwelnet) for linear and logistic
-    regression.  See Tay, J. K., Aghaeepour, N., Hastie, T., and
-    Tibshirani, R., (2020) <arXiv:2006.01395> for details.
+Authors@R: c(
+    person("Lukas", "Burk", , "burk@leibniz-bips.de", role = c("aut", "cre"),
+               comment = c(ORCID = "0000-0001-7528-3795")),
+    person("Kenneth", "Tay", , "kjytay@stanford.edu", role = c("aut")),
+    person("Robert", "Tibshirani", role = "aut")
+  )
+Description: A method for fitting cause-specific penalized Cox regression models based on
+    the feature-weighted elastic net (fwelnet) introduced by Tay, J. K., Aghaeepour, N., Hastie, T., and
+    Tibshirani, R., (2020) <arXiv:2006.01395>.
 License: GPL-3
 Imports: 
     checkmate,

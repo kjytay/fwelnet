@@ -1,5 +1,26 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
+## Cooperative Penalized Regression (CooPeR) ⚠️ Fork Notice ⚠️
+
+This repository is a fork of the original [`fwelnet` implementation by
+Tay et al](https://github.com/kjytay/fwelnet).  
+The goal of this fork is support a research project based on the
+extension of `fwelnet` to survival settings and competing event
+analysis. For this purpose, some of the internal functions were modified
+in a way that is not directly compatible with the original
+implementation, hence this project currently stands on its own, rather
+than being a pull-request to the original implementation.
+
+This version, renamed to `cooper`, supports targets of the form
+`Surv(time, event)` from the `survival` package, and fits `fwelnet`
+through the minimization of the Cox deviance. In addition, it adds the
+`cooper()` function for a specific implementation of the multi-task
+algorithm proposed by Tay et al. which fits cause-specific Cox models.
+As of now, the implementation is tailored towards a specific research
+question rather than general use.
+
+Content from the original repository follows.
+
 # Feature-Weighted Elastic Net (fwelnet)
 
 `fwelnet` is a package that fits the ***feature-weighted elastic net
@@ -10,27 +31,6 @@ responses. For details, please see the
 [preprint](https://arxiv.org/abs/2006.01395). For a short tutorial on
 how to use the package, please see the vignette in the `vignettes/`
 folder.
-
-## ⚠️ Fork Notice ⚠️
-
-This repository is a fork of the original `fwelnet` implementation by
-Tay et al.  
-The goal of this fork is support a research project based on the
-extension of `fwelnet` to survival settings and competing event
-analysis. For this purpose, some of the internal functions were modified
-in a way that is not directly compatible with the original
-implementation, hence this project currently stands on its own, rather
-than being a pull-request to the original implementation.
-
-THis version of `fwelnet` supports targets of the form
-`Surv(time, event)` from the `survival` package, and fits `fwelnet`
-through the minimization of the Cox deviance. In addition, it adds the
-`cooper()` function for a specific implementation of the multi-task
-algorithm proposed by Tay et al. which fits cause-specific Cox models.
-As of now, the implementation is tailored towards a specific research
-question rather than general use.
-
-Content from the original repository follows.
 
 ## An example
 

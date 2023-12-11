@@ -231,38 +231,6 @@ cooper <- function(data,
                   "cause-specific glmnet (k = 1)"))
   }
   
-  
-  
-  # if (standardize) {
-  #   # A hacky bit (surprise!): To enable downstream use of survival::survfit using glmnet/coxnet objects, we hackily
-  #   # store the internal glmnet fit inside the fwelnet fit inside the cv.fwelnet fit. This is annoying but at least
-  #   # I don't have to reverse engineer what glmnet:::survfit.coxnet does (I tried).
-  #   # Caveat: If `standardize = TRUE`, glmnet is still called with standardize = FALSE inside of fwelnet during its
-  #   # theta-optimization (at this point the data is already standardized by fwelnet), so we could re-scale the coefs
-  #   # inside that glmnet fit or just resubstitute the coefficient matrix (across the full lambda path), and I guess
-  #   # that works.
-  #   
-  #   # Ensure same dimnames and class (dgCMatrix)
-  #   
-  #   for (i in causes) {
-  #     fw_cv_list[[i]]$glmfit$glmfit$beta <- Matrix::Matrix(
-  #       fw_cv_list[[i]]$glmfit$beta, 
-  #       dimnames = dimnames(fw_cv_list[[i]]$glmfit$glmfit$beta), 
-  #       sparse = TRUE
-  #     )
-  #     
-  #   }
-    
-    # xn1 <- dimnames(fw_cv_list[[1]]$glmfit$glmfit$beta)
-    # xn2 <- dimnames(fw_cv_list[[2]]$glmfit$glmfit$beta)
-    # 
-    # fw_cv_list[[1]]$glmfit$glmfit$beta <- Matrix::Matrix(fw_cv_list[[1]]$glmfit$beta, dimnames = xn1, sparse = TRUE)
-    # fw_cv_list[[2]]$glmfit$glmfit$beta <- Matrix::Matrix(fw_cv_list[[2]]$glmfit$beta, dimnames = xn2, sparse = TRUE)
-    # 
-  #}
-  
-
-
   # Returns betas and anything else that might be interesting
   ret <- list(
     # final fwelnet fit objects for later predictions
@@ -294,7 +262,7 @@ cooper <- function(data,
   ret
 }
 
-
+#' Compatibility alias
 #' @export
 #' @rdname cooper
 fwelnet_mt_cox <- cooper

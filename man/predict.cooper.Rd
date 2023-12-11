@@ -47,7 +47,7 @@ xtrain <- pbc[1:270, -1]
 xtest <- pbc[270:276, -1]
 
 set.seed(12)
-cooperfit <- fwelnet_mt_cox(
+cooperfit <- cooper(
   xtrain, mt_max_iter = 3,
   stratify_by_status = TRUE,
   standardize = FALSE # Currently required to ensure correct results

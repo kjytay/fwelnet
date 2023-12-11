@@ -21,7 +21,7 @@
 #' xtest <- pbc[270:276, -1]
 #' 
 #' set.seed(12)
-#' cooperfit <- fwelnet_mt_cox(
+#' cooperfit <- cooper(
 #'   xtrain, mt_max_iter = 3,
 #'   stratify_by_status = TRUE,
 #'   standardize = FALSE # Currently required to ensure correct results
@@ -166,7 +166,7 @@ get_event_times <- function(surv, horizon = NULL) {
 #' xtest <- pbc[270:276, -1]
 #' 
 #' set.seed(12)
-#' cooperfit <- fwelnet_mt_cox(
+#' cooperfit <- cooper(
 #'   xtrain, mt_max_iter = 3,
 #'   stratify_by_status = TRUE,
 #'   standardize = FALSE # Currently required to ensure correct results
